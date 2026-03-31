@@ -1,0 +1,28 @@
+{
+  "name": "noma-dev-rules",
+  "version": "0.1.0",
+  "description": "AI 에이전트 프로젝트 운영 규칙: 도구 현황, 보안, 프론트 디자인 파이프라인, 브라우저 3계층, 서브에이전트 계약, headless lane. Superpowers/OMC와 함께 사용 가능.",
+  "author": "noma-openproject",
+  "license": "MIT",
+  "homepage": "https://github.com/noma-openproject/noma-dev-rules",
+  "compatible_with": ["superpowers", "oh-my-claudecode"],
+  "skills": [
+    "skills/tool-landscape",
+    "skills/security-ops",
+    "skills/frontend-pipeline",
+    "skills/browser-automation",
+    "skills/subagent-ops",
+    "skills/headless-lane",
+    "skills/project-interview",
+    "skills/upstream-tracker"
+  ],
+  "agents": [
+    "agents/browser-verifier.md",
+    "agents/security-reviewer.md",
+    "agents/design-auditor.md"
+  ],
+  "hooks": [
+    "hooks/auth-preflight.sh",
+    "hooks/browser-cleanup.sh"
+  ]
+}
