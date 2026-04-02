@@ -6,16 +6,7 @@
   "license": "MIT",
   "homepage": "https://github.com/noma-openproject/noma-dev-rules",
   "compatible_with": ["superpowers", "oh-my-claudecode"],
-  "skills": [
-    "skills/tool-landscape",
-    "skills/security-ops",
-    "skills/frontend-pipeline",
-    "skills/browser-automation",
-    "skills/subagent-ops",
-    "skills/headless-lane",
-    "skills/project-interview",
-    "skills/upstream-tracker"
-  ],
+  "skills": "./skills/",
   "agents": [
     "agents/browser-verifier.md",
     "agents/security-reviewer.md",
