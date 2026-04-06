@@ -1,38 +1,49 @@
 # AI 개발 도구 현황 스냅샷
 
-> **스냅샷 날짜: 2026-03-28**
+> **스냅샷 날짜: 2026-04-06**
 > 이 문서는 빠르게 변하는 도구 현황, 모델 비교, 가격, quota, 기능 상태를 담는 별도 문서입니다.
 > 프로젝트 운영 지침(v2.1)의 원칙은 그대로 유지하면서, 이 문서만 주기적으로 갱신합니다.
 > **갱신 주기: 최소 주 1회** (또는 주요 릴리스 발생 시 즉시)
 
 ---
 
-## 0. 이번 주 Delta & Known Issues (2026-03-21~28)
+## 0. 이번 주 Delta & Known Issues (2026-03-30~04-06)
 
 > **실무 팀은 비교표보다 이 섹션을 먼저 본다.** "이번 주"는 엄격하게 7일 창. 그 이전 항목은 "최근 30일 notable"로 내린다.
+
+### ⚠️ 긴급: Sonnet 4.5/4 1M 컨텍스트 베타 종료 예정
+
+**2026-04-30**에 Sonnet 4.5 및 Sonnet 4의 1M 컨텍스트 베타가 종료됩니다. 이후 `context-1m-2025-08-07` 헤더는 효력 없음. 200K 초과 요청은 에러 반환. **Sonnet 4.6 또는 Opus 4.6으로 마이그레이션 필요** (표준 가격으로 1M 지원).
 
 ### 이번 주 주요 변경
 
 | 날짜 | 플랫폼 | 변경 | 영향도 |
 |---|---|---|---|
-| 03-27 | **Claude Code** | v2.1.86: `--bare` 플래그 (headless thin lane), `--channels` 권한 릴레이, `rate_limits` statusline, Bedrock/Vertex 기본 Opus 4.6, `/output-style` deprecated→`/config` | 높음 |
-| 03-26 | **Codex** | **플러그인이 1급 워크플로우로 승격**: product-scoped sync, `/plugins` 탐색, 설치/삭제 개선 | 높음 |
-| 03-26 | **Codex** | **서브에이전트 v2**: 경로 기반 주소(`/root/agent_a`), 구조화된 에이전트 간 메시징, 에이전트 목록 | 높음 |
-| 03-26 | **Codex** | app-server TUI 기본 활성화, 레거시 artifact/read_file/grep_files 도구 제거 | 중간 |
-| 03-26 | **Codex** | `spawn_agents_on_csv`: CSV 행 기반 대량 병렬 서브에이전트 + `report_agent_job_result` | 중간 |
-| 03-26 | **Claude Code** | `managed-settings.d/`, effort frontmatter for skills, `source: 'settings'` plugin marketplace | 중간 |
-| 03-26 | **Claude Code** | CJK IME 수정, concurrent session auth 수정, background agent race condition 수정 | 해결 |
-| 03-25~27 | **Claude 플랫폼** | Opus 4.6 / Sonnet 4.6 에러 + MCP 호출 에러 (발생→해결) | 해결 |
-| 03-24 | **Figma** | MCP write beta 공개 + Skills 프레임워크 출시 | 높음 |
-| 03-23 | **Claude Desktop** | **Computer Use 연구 미리보기**: 실제 데스크톱 마우스/키보드 직접 조작. macOS, Pro/Max 전용. API 커넥터 우선→없으면 화면 조작 fallback. 민감 앱 기본 차단. | **높음 (보안)** |
-
+| 04-04 | **Claude Code** | `forceRemoteSettingsRefresh`: 원격 설정 fetch 실패 시 시작 차단 (fail-closed). 인터랙티브 Bedrock 세팅 위저드. `/cost`에 모델별+캐시 히트 분석 | 중간 |
+| 04-04 | **Claude Code** | Pro 사용자 프롬프트 캐시 만료 힌트 (uncached 토큰 예측) | 낮음 |
+| 04-01 | **Claude Code** | `/powerup` 인터랙티브 레슨. Edit 도구 짧은 앵커 (출력 토큰 감소). rate-limit 다이얼로그 무한루프 수정 | 중간 |
+| 04-01 | **Claude Code** | PowerShell 보안 강화: trailing & 우회, -ErrorAction Break 행, TOCTOU, deny-rule 열화 수정 | 높음 (보안) |
+| 04-01 | **Claude Code** | `disableSkillShellExecution` 설정: 스킬/커맨드의 인라인 셸 실행 비활성화 가능 | 중간 (보안) |
+| 03-31 | **Claude Code** | `PermissionDenied` hook, "defer" PreToolUse, `MCP_CONNECTION_NONBLOCKING=true`, named subagents @mention, auto mode 사용자 경계 존중 | 높음 |
+| 03-29 | **Claude Code** | X-Claude-Code-Session-Id 헤더, Jujutsu/Sapling VCS 지원, Write 60% 성능 향상 | 중간 |
+| 03-24 | **Claude 플랫폼** | Message Batches API max_tokens 300K 상향 (Opus 4.6, Sonnet 4.6) | 중간 |
+| 04-01 | **Codex** | Windows sandbox OS 레벨 네트워크 격리 (환경변수 우회 차단), device code 로그인, `codex exec` prompt-plus-stdin, 동적 bearer 토큰 갱신 | 높음 (보안) |
+| 04-02 | **H Company** | Holo3: OSWorld-Verified 78.85% (Computer Use 신규 SOTA). 10B 활성 파라미터, Apache 2.0 오픈소스 | 높음 |
+| 04-02 | **DeepMind** | "AI Agent Traps" 논문: 에이전트 적대적 위협 6가지 체계화. **서브에이전트 스포닝 함정 58-90% 성공률** | **높음 (보안)** |
+| 04-02 | **Alibaba** | Qwen3.6-Plus: 에이전틱 코딩 특화, 1M 컨텍스트, SWE-bench Opus 4.5급, $0.29/M. Claude Code 호환 | 중간 |
 ### 최근 30일 Notable (이번 주 창 이전이지만 여전히 유효)
 
 | 날짜 | 플랫폼 | 변경 |
 |---|---|---|
-| 03-19 | Codex | Skills `@` 메뉴 진입, plugin suggestion allowlist, `userpromptsubmit` hook |
-| 03-16 | Codex | GPT-5.4 mini 라우팅 (서브에이전트용, 비용 30%), Codex 서브에이전트 GA (Explorer/Worker/Default) |
-| 03-11 | Antigravity | AI Credits 도입 + 이중 한도 구조 전환 (250유닛 스프린트 + 2,800유닛 주간) |
+| 03-27 | Claude Code | v2.1.86: --bare, --channels, rate_limits, Bedrock/Vertex Opus 4.6 기본 |
+| 03-26 | Codex | 플러그인 1급, 서브에이전트 v2, app-server TUI 기본, 레거시 도구 제거, spawn_agents_on_csv |
+| 03-26 | Claude Code | managed-settings.d/, effort frontmatter, source: 'settings' |
+| 03-24 | Figma | MCP write beta + Skills 프레임워크 |
+| 03-24 | Claude 플랫폼 | Message Batches API max_tokens 300K |
+| 03-23 | Claude Desktop | Computer Use 연구 미리보기 |
+| 03-19 | Codex | Skills @ 메뉴, plugin suggestion allowlist, userpromptsubmit hook |
+| 03-16 | Codex | GPT-5.4 mini 라우팅, 서브에이전트 GA |
+| 03-11 | Antigravity | AI Credits 이중 한도 구조 전환 |
 
 ### Known Regressions & Workarounds
 
@@ -68,23 +79,24 @@
 
 ## 1. 모델별 프론트엔드 강약점 비교
 
-> 이 표는 2026-03-26 기준입니다. 모델 업데이트 시 재평가 필요.
+> 이 표는 2026-04-06 기준입니다. 모델 업데이트 시 재평가 필요.
+> ⚠️ **Sonnet 4.5/4의 1M 컨텍스트 베타가 04-30 종료 예정.** Sonnet 4.6 또는 Opus 4.6으로 마이그레이션 필요.
 
-| 영역 | Gemini 3.1 Pro | GPT-5.4 / Codex | Claude Opus 4.6 |
-|---|---|---|---|
-| 레퍼런스 → 구현 속도 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| 무에서 디자인 창조 | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| DOM/CSS 구조 정확도 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| 인터랙티브 애니메이션 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| 스크린샷 기반 시각 검증 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ (Playwright) | ⭐⭐⭐ |
-| 프론트엔드 미학/감성 | ⭐⭐⭐⭐ | ⭐⭐⭐ ("기업 사이트 느낌") | ⭐⭐⭐⭐ ("우아함") |
-| 복잡한 로직/아키텍처 | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| 코드 품질/재작업 최소화 | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ (~30% 적은 재작업) |
-| 대규모 코드베이스 | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| 환각/일관성 | ⭐⭐ (환각 이슈 보고) | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| 속도 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ (1000+ tok/s Spark) | ⭐⭐⭐ |
-| 비용 | 무료~$20 | $20~$200 | $20~$200 |
-| 장시간 자율 실행 | ⭐⭐ (레이트 리밋 이슈) | ⭐⭐⭐⭐⭐ (7시간+) | ⭐⭐⭐⭐⭐ |
+| 영역 | Gemini 3.1 Pro | GPT-5.4 / Codex | Claude Opus 4.6 | Cursor Composer 2 |
+|---|---|---|---|---|
+| 레퍼런스 → 구현 속도 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| 무에서 디자인 창조 | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| DOM/CSS 구조 정확도 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| 인터랙티브 애니메이션 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| 복잡한 로직/아키텍처 | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| 코드 품질/재작업 최소화 | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| 대규모 코드베이스 | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ (자체 컨텍스트 압축) |
+| 환각/일관성 | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| 속도 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ (Spark 1000+ tok/s) | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| API 비용 (입력/M) | 무료~$1.25 | $2~$10 | $5~$15 | $0.50 |
+| 장시간 자율 실행 | ⭐⭐ | ⭐⭐⭐⭐⭐ (7시간+) | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ (IDE 내장) |
+
+**벤치마크 참고 (04-06):** Terminal-Bench 2.0 — GPT-5.4: 75.1, Composer 2: 61.7, Opus 4.6: 58.0. SWE-bench Multilingual — Composer 2: 73.7.
 
 **핵심 결론:**
 - 비주얼/애니메이션 → Gemini (레퍼런스를 받아 빠르게 구현하는 "실행기")
@@ -105,9 +117,9 @@
 - 주의: SVG 노드 → 웹 코드 변환 시 85-90% 스타일링 부정확성 보고 (SFAI Labs)
 - 주의: 복잡한 component/variant/state 자동 생성 결과는 상태별 수동 검수 필수
 
-### 2-2. Google Antigravity (2026-03-28 기준)
+### 2-2. Google Antigravity (2026-04-06 기준)
 
-- 버전: v1.20.5 (2026-03 중순) — AI Credits 토글 도입
+- 버전: v1.20.x (AI Credits 토글은 03-11 이후 도입, 정확한 마이너 버전 확인필요)
 - 모델: Gemini 3.1 Pro (High/Low), Gemini 3 Flash, Claude Sonnet 4.6, Claude Opus 4.6, GPT-OSS 120B
 - AgentKit 2.0: 16개 에이전트, 40+ 스킬, 11개 커맨드
 - AGENTS.md 지원 (v1.20.3부터)
@@ -141,7 +153,7 @@
 - Figma/Stitch와 동급으로 배치하지 않음
 - HTML/CSS 네이티브라는 구조적 장점은 유효하나, 안정성과 생태계에서 Figma에 한참 뒤처짐
 
-### 2-5. Codex 최신 기능 (2026-03-28 기준)
+### 2-5. Codex 최신 기능 (2026-04-06 기준)
 
 - GPT-5.4: 프론티어 모델, 1M 컨텍스트, 네이티브 computer use, 128K 출력
 - GPT-5.4 mini: 경량 서브에이전트용, 비용 30%, 2x 이상 빠름
@@ -154,8 +166,14 @@
 - app-server TUI 기본 활성화 (03-26)
 - 레거시 도구 제거: `artifact`, `read_file`, `grep_files` — 기존 워크플로우 마이그레이션 필요
 - **주의**: Plugins surface 불안정 (03-26 후 UI 전환 이슈), custom TOML이 tool-backed 세션에서 직접 호출 불가
+- **04-01 신규:**
+  - Windows sandbox **OS 레벨 네트워크 격리** (환경변수 우회 차단)
+  - `codex exec` prompt-plus-stdin: 파이프 입력 + 프롬프트 동시 전달
+  - 커스텀 모델 프로바이더 **동적 bearer 토큰 갱신** (정적 자격증명 제한 해소)
+  - ChatGPT device code 로그인 (headless/서버 환경 인증 간소화)
+  - `.codex` 프로젝트 파일 최초 생성 시에도 보호 적용
 
-### 2-6. Claude Code 최신 기능 (2026-03-28 기준)
+### 2-6. Claude Code 최신 기능 (2026-04-06 기준)
 
 - Claude Opus 4.6 / Sonnet 4.6 (1M 컨텍스트 beta)
 - Bedrock/Vertex/Foundry 기본 Opus 모델: 4.1 → 4.6 변경 (v2.1.86)
@@ -173,23 +191,34 @@
   - `/output-style` deprecated → `/config` 통합
   - 대규모 리포 시작 시 메모리 ~80MB 절감
 - **주의**: stale auth→rate limit 오인식, 병렬 에이전트 auth token 만료 시 partially applied state
+- **v2.1.89+ (04-01~04-04) 신규:**
+  - `CLAUDE_CODE_NO_FLICKER=1`: 플리커 없는 alt-screen 렌더링 (연구 프리뷰)
+  - `PermissionDenied` hook: auto mode 거부 후 `{retry: true}`로 재시도
+  - PreToolUse "defer": headless에서 일시정지 → `--resume`으로 재평가
+  - `MCP_CONNECTION_NONBLOCKING=true`: `-p` 모드 MCP 연결 대기 건너뜀
+  - `forceRemoteSettingsRefresh`: 원격 설정 fetch 실패 시 시작 차단 (fail-closed)
+  - `disableSkillShellExecution`: 스킬 인라인 셸 실행 비활성화
+  - `/powerup`: 인터랙티브 기능 학습 레슨
+  - `/cost` 모델별 + 캐시 히트 분석
+  - PowerShell 보안 강화 (trailing & 우회, TOCTOU 수정)
+  - Write 도구 60% 성능 향상 (대용량 파일)
 
 ---
 
-## 3. 가격 비교 (2026-03-28 기준)
+## 3. 가격 비교 (2026-04-06 기준)
 
 | 도구/플랜 | 월 비용 | 포함 내용 |
 |---|---|---|
-| Antigravity 무료 | $0 | Gemini Flash 중심, 주간 레이트 리밋 |
+| Antigravity 무료 | $0 | Gemini Flash 중심, **이중 한도로 실사용 매우 제한적** |
 | Antigravity Pro | $19.99 | 이중 한도(스프린트 250유닛/5h + 주간 2,800유닛). **AI Credits OFF 권장** |
 | Antigravity Ultra | $249.99 | 고볼륨, premium 모델 일관 접근 |
 | Antigravity AI Credits | $25/2,500 크레딧 | 추가 구매. 소비 속도 불투명, ON 시 급가속 보고 |
-| Cursor Pro | $20 | Opus 4.6 / Gemini 3 / GPT-5.2, 8 병렬 에이전트 |
+| Cursor Pro | $20 | Composer 2(독자 모델) + Opus 4.6 / Gemini 3 / GPT-5.4, 8 병렬 에이전트 |
 | Claude Code Pro | $20 | Sonnet 4.6 기본, 제한적 Opus |
 | Claude Code Max 5x | $100 | Opus 4.6 충분한 한도 |
 | Claude Code Max 20x | $200 | Opus 4.6 대규모 작업 |
 | Codex (ChatGPT Plus) | $20 | GPT-5.4, 웹/앱/CLI/IDE 접근 |
-| Codex (ChatGPT Pro) | $200 | GPT-5.4 Pro + Spark + 무제한에 가까운 사용 |
+| Codex (ChatGPT Pro) | $200 | GPT-5.4 Pro + Spark(1000+ tok/s) + 무제한에 가까운 사용 |
 
 ---
 
@@ -197,22 +226,23 @@
 
 | 패턴 | 도구 조합 | 비용 | 적합 대상 |
 |---|---|---|---|
-| **무료 최대화** | Antigravity(Gemini+Opus 무료) + Claude Code 무료 티어 | $0 | 학습, 실험, POC |
-| **프론트 특화** | Antigravity 프로토타입 + Cursor(Gemini 모델) UI 구현 + Claude Code 로직 | $20~$40/월 | 프론트엔드 중심 |
-| **균형형 (권장)** | Stitch 디자인 + Cursor(모델 전환) 구현 + Claude Code 아키텍처/리뷰 | $20~$60/월 | 풀스택 앱 |
+| **무료 최대화** | Claude Code 무료 티어 + Antigravity Flash(이중 한도 주의) | $0 | 학습, 실험, POC. **Antigravity 무료는 실사용 매우 제한적** |
+| **프론트 특화** | Cursor(Composer 2 + Gemini) UI 구현 + Claude Code 로직 | $20~$40/월 | 프론트엔드 중심 |
+| **균형형 (권장)** | Stitch 디자인 + Cursor 구현 + Claude Code 아키텍처/리뷰 | $20~$60/월 | 풀스택 앱 |
 | **품질 최우선** | Claude Code Max + Codex(GPT-5.4) 병렬 작업 | $100~$200/월 | 프로덕션 앱 |
 
 ---
 
 ## 5. 브라우저 자동화 & 시각 검증 & 구조 추출 도구
 
-### 3계층 브라우저 도구 체계
+### 4계층 브라우저/시스템 도구 체계
 
 | 계층 | 도구 | 성격 | 비용 |
 |---|---|---|---|
 | **정밀 자동화** | Playwright | 셀렉터 기반, CI/CD, E2E | 무료 (오픈소스) |
 | **AI 시각 조작** | agent-browser (Vercel Labs) | AI가 "보고" 판단하며 조작 | 무료 (오픈소스) |
 | **구조 추출** | Scrapling | 적응형 사이트 구조 이해, MCP 서버 | 무료 (오픈소스) |
+| **OS 레벨 제어** | Claude Computer Use / Holo3 | 실제 데스크톱 마우스/키보드 | Computer Use: Pro/Max. Holo3: 무료 (Apache 2.0) |
 
 ### agent-browser (github.com/vercel-labs/agent-browser)
 - CLI 기반, Claude Code/Codex/Cursor/Gemini CLI/Copilot/Windsurf 통합
@@ -286,7 +316,8 @@
 
 | 날짜 | 변경 |
 |---|---|
-| 2026-03-28 | 날짜 창 03-21~28로 롤링, "이번 주"와 "최근 30일 notable" 분리. Codex 03-26 대규모 업데이트(플러그인 1급, 서브에이전트 v2, app-server TUI 기본화, 레거시 도구 제거) 추가. Claude Code v2.1.86(--bare, rate_limits, effort frontmatter) 추가. Known Regressions 대폭 추가: raw MCP write approval gap, plugins surface 불안정, codex exec parity, stale auth→rate limit 오인식, OAuth refresh 429, AutoDream 미등록. Antigravity 이중 한도 구조 + AI Credits OFF 권장으로 업데이트. |
-| 2026-03-27 | agent-browser(Vercel Labs) + Scrapling 추가. 3계층 브라우저 도구 체계 정의. |
+| 2026-04-06 | 날짜 창 03-30~04-06으로 롤링. Sonnet 4.5/4 1M 컨텍스트 04-30 종료 긴급 경고 추가. Claude Code v2.1.89+ 4월 기능 (PermissionDenied hook, defer, FLICKER, forceRemoteSettingsRefresh, PowerShell 강화) 추가. Codex 04-01 (OS 레벨 sandbox, device code, prompt-plus-stdin, 동적 토큰) 추가. Holo3 Computer Use SOTA 추가. DeepMind Agent Traps (서브에이전트 58-90%) 추가. Qwen3.6-Plus 추가. 모델 비교표에 Cursor Composer 2 + Terminal-Bench 벤치마크 추가. 가격표 Cursor GPT-5.2→Composer 2+GPT-5.4 수정. Antigravity 무료 한도 오해 수정. 4계층 도구 체계 스냅샷 통일. Antigravity 버전 불확실성 표시. |
+| 2026-03-28 | 날짜 창 03-21~28로 롤링, "이번 주"와 "최근 30일 notable" 분리. Codex 03-26 대규모 업데이트. Claude Code v2.1.86. Known Regressions 대폭 추가. Antigravity 이중 한도 구조 + AI Credits OFF. |
+| 2026-03-27 | agent-browser(Vercel Labs) + Scrapling 추가. 4계층 브라우저 도구 체계 정의. |
 | 2026-03-27 | 이번 주 Delta & Known Issues 섹션 0 추가. 한국/Windows Caveats 추가. |
 | 2026-03-26 | 초판. Figma MCP write beta(3/24), NIST 보안(3/23), Codex GPT-5.4(3/5), Antigravity v1.20.3(3/5) 기준. |

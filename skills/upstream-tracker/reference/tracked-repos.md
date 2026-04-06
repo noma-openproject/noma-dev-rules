@@ -1,6 +1,6 @@
 # Tracked Repositories — 추적 현황
 
-> 마지막 확인: 2026-03-28
+> 마지막 확인: 2026-04-06
 
 ## Superpowers (obra/superpowers)
 
