@@ -54,6 +54,6 @@
 - `/subagent-ops` — 서브에이전트 운영 계약
 - `/headless-lane` — CI/자동화 thin lane
 - `/project-interview` — 모호한 지시 시 인터뷰 + product thinking
-- `/upstream-tracker` — 외부 프레임워크(Superpowers/OMC/gstack) 변경 추적
+- `/upstream-tracker` — 외부 프레임워크(Superpowers/omo/gstack) 변경 추적
 
 전체 레퍼런스: docs/ 폴더의 3개 문서를 필요할 때 참조.

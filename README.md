@@ -8,10 +8,10 @@
 
 A skills-based plugin that gives your coding agent **operational awareness** — not just how to write code, but *which tools to use, what's broken this week, how to stay secure, and when to fall back*.
 
-Works alongside [Superpowers](https://github.com/obra/superpowers) (coding discipline) and [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) (execution modes). No conflicts — different layers.
+Works alongside [Superpowers](https://github.com/obra/superpowers) (coding discipline) and [omo](https://github.com/code-yeongyu/omo) (execution modes, oh-my-claudecode successor). No conflicts — different layers.
 
 ```
-[oh-my-claudecode]  → Execution engine (autopilot, parallel, ecomode)
+[omo]               → Execution engine (autopilot, parallel, ecomode)
 [Superpowers]       → Coding discipline (brainstorm, TDD, plan, review)
 [noma-dev-rules]    → Operation rules (tools, security, design, known issues)
 ```

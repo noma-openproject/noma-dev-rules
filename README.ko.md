@@ -8,10 +8,10 @@
 
 코딩 에이전트에게 **운영 감각**을 주는 스킬 기반 플러그인입니다. 코드를 어떻게 짜는가가 아니라, *어떤 도구를 쓰고, 이번 주 뭐가 깨졌고, 보안은 어떻게 지키고, 언제 fallback하는가*를 알려줍니다.
 
-[Superpowers](https://github.com/obra/superpowers)(코딩 규율)와 [oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode)(실행 모드)와 함께 사용 가능. 충돌 없음 — 레이어가 다릅니다.
+[Superpowers](https://github.com/obra/superpowers)(코딩 규율)와 [omo](https://github.com/code-yeongyu/omo)(실행 모드, oh-my-claudecode 후속)와 함께 사용 가능. 충돌 없음 — 레이어가 다릅니다.
 
 ```
-[oh-my-claudecode]  → 실행 엔진 (autopilot, 병렬, ecomode)
+[omo]               → 실행 엔진 (autopilot, 병렬, ecomode)
 [Superpowers]       → 코딩 규율 (brainstorm, TDD, 계획, 리뷰)
 [noma-dev-rules]    → 운영 규칙 (도구 선택, 보안, 디자인, known issues)
 ```

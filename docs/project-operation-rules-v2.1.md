@@ -121,6 +121,16 @@
 - 코드 스타일이 갈수록 중구난방이 된다 → 초기 규칙이 밀려남
 - 이 신호가 나타나면 즉시 /compact 또는 /clear + 핵심 컨텍스트 재주입
 
+**3단계 컨텍스트 압축 전략 ⭐ v2.1.9 신규 (Claude Code 내부 구조 기반):**
+- **Reactive (반응형)**: 컨텍스트 한도 근접 시 → 전체 대화 압축. 가장 무거운 전략
+- **Micro (선택적)**: 도구 호출 결과만 압축, 대화 흐름은 유지. 빈번한 도구 사용 세션에 적합
+- **Trimmed (절단)**: 오래된 메시지만 잘라내고 최근 유지. 가장 가벼움
+- **판단 기준:**
+  - 도구 출력이 크고 대화 맥락이 중요 → Micro
+  - 단순 시간 경과로 오래된 내용이 불필요 → Trimmed
+  - 전체적으로 한도에 근접 → Reactive
+  - /compact은 Reactive에 가까움. 더 세밀한 제어가 필요하면 `/compact <집중 프롬프트>`로 Micro/Trimmed 효과
+
 **Context Anxiety와 Context Reset ⭐ v2.1.9 보강 (Anthropic Labs 2026-03-24):**
 - **Context anxiety**: 모델이 컨텍스트 한계에 가까워지면 **작업을 조기 마무리하려는 경향**
 - Compaction은 대화를 줄여주지만 **context anxiety를 해소하지 못한다** — 같은 에이전트가 계속하므로
@@ -548,6 +558,14 @@ typography, color-and-contrast, spatial-design, motion-design, interaction-desig
 - 기능 추가/리팩터링 → 반드시 계획 단계 거침
 - 아키텍처 변경/다단계 작업 → PLANS.md(ExecPlan) 필수
 - 장시간 자율 실행(1시간+) → ExecPlan + 마일스톤별 검증 + 자동 커밋
+- **복잡한 계획이 현재 세션에서 해결 안 됨** → 별도 세션에 위임 (원격 오프로드 패턴)
+
+**원격 오프로드 패턴 ⭐ v2.1.9 신규 (Claude Code ULTRAPLAN 기반):**
+- 현재 세션에서 30분+ 계획이 필요한 복잡한 작업 → **별도 세션에 고성능 모델로 위임**
+- 위임 시: 문제 정의 + 현재 코드 상태 + 제약 조건을 구조화하여 전달
+- 결과를 받아서 현재 세션에서 실행
+- **판단 기준**: 현재 세션의 컨텍스트가 50% 이상 차 있고 + 아키텍처 수준 판단이 필요하면 → 오프로드
+- 실행 방법: `claude --resume` 새 세션 또는 서브에이전트(Opus) 활용
 
 ### 9-4. Harness Engineering 운영 원칙 ⭐ v2.1.3 확장
 
@@ -646,7 +664,7 @@ typography, color-and-contrast, spatial-design, motion-design, interaction-desig
 
 ### 9-5. 외부 프레임워크 핵심 원칙 이식 ⭐ v2.1.9 신규
 
-> Superpowers(120K 스타), oh-my-claudecode(4.6K), gstack(54K)에서 핵심 원칙만 이식. 실행은 원본 플러그인에 위임하고, 여기서는 원칙과 판단 기준만 내재화한다.
+> Superpowers(140K 스타), omo(48.5K, oh-my-claudecode 후속), gstack(54K)에서 핵심 원칙만 이식. 실행은 원본 플러그인에 위임하고, 여기서는 원칙과 판단 기준만 내재화한다.
 
 **[Superpowers] TDD 강제 — Iron Law:**
 - **실패하는 테스트 없이 프로덕션 코드를 작성하지 않는다** (RED-GREEN-REFACTOR)
@@ -661,13 +679,13 @@ typography, color-and-contrast, spatial-design, motion-design, interaction-desig
 - worktree에서 테스트 baseline을 먼저 확인한 후 구현 시작
 - 완료 시: merge/PR/keep/discard 선택 후 worktree 정리
 
-**[OMC] Persistence Mode — 완료까지 포기 안 함:**
+**[omo] Persistence Mode — 완료까지 포기 안 함:**
 - 복잡한 작업에서 에이전트가 "이 정도면 됐다"고 조기 종료하는 경향 방지
 - 완료 조건(테스트 통과, lint clean, 타입체크)을 **명시적으로 정의**하고, 미달이면 계속
-- rate limit에 걸리면 **자동 대기 후 재개** (OMC의 `omc wait --start` 패턴)
+- rate limit에 걸리면 **자동 대기 후 재개** (omo의 자동 대기 패턴)
 - 2회 실패 → 접근 변경, 3회 실패 → 사람에게 보고. 무한 루프는 아님
 
-**[OMC] Rate Limit 자동 대기/재개:**
+**[omo] Rate Limit 자동 대기/재개:**
 - rate limit 발생 시 세션을 즉시 포기하지 않고, 리셋 시간을 확인해 자동 대기
 - 대기 중에도 상태 보존 (어디까지 했는지 기록)
 - auth 이슈인지 실제 rate limit인지 구분 (15-5 auth durability 참조)
@@ -738,7 +756,18 @@ typography, color-and-contrast, spatial-design, motion-design, interaction-desig
 - 빌드 에러 발생 시 → 에러 메시지 분석 → 수정 → 재빌드. **통과할 때까지 반복**
 - 최대 3회 반복 내 해결 못하면 → 사람에게 보고 (무한 루프 방지)
 - 빌드 + 린트 + 타입체크 + 테스트 **전부 통과**가 "수정 완료"의 최소 조건
-- 이 루프는 OMC의 persistence mode, Superpowers의 TDD 강제와 동일한 철학
+- 이 루프는 omo의 persistence mode, Superpowers의 TDD 강제와 동일한 철학
+
+### 10-3. 회로 차단기 원칙 (Circuit Breaker) ⭐ v2.1.9 신규
+
+> Anthropic 내부에서도 compaction 재시도 루프가 세션당 3,272회까지 반복되어 **일일 250K API 콜을 낭비**한 사례가 확인되었다. 수정: MAX_CONSECUTIVE_FAILURES = 3. 이 패턴은 모든 자동화 루프에 적용한다.
+
+**모든 자동 재시도 루프에 하드 캡을 적용한다:**
+- 빌드 재시도: 3회 (10-2 참조)
+- compaction 재시도: 3회. 초과 시 compaction 중단, 새 세션으로
+- 테스트 재실행: 3회. 동일 테스트가 3회 실패하면 접근 변경
+- 도구 호출 재시도: 3회. 같은 도구가 3회 연속 실패하면 사람에게 보고
+- **원칙: 재시도 루프에는 항상 상한이 있어야 한다. 무한 루프는 비용 폭발의 직접 원인이다.**
 
 ---
 
