@@ -1,6 +1,6 @@
 ---
 name: upstream-tracker
-description: Tracks upstream changes from Superpowers, omo, and gstack repositories. Use when checking for upstream updates, during weekly snapshot refresh, or when the user asks about changes in external AI coding frameworks. Helps decide what to adopt and what to skip.
+description: Tracks upstream changes from Superpowers, gstack, and Ruflo repositories. Use when checking for upstream updates, during weekly snapshot refresh, or when the user asks about changes in external AI coding frameworks. Helps decide what to adopt and what to skip.
 ---
 
 # Upstream Tracker — 외부 프레임워크 변경 추적
@@ -10,8 +10,8 @@ description: Tracks upstream changes from Superpowers, omo, and gstack repositor
 | 리포 | 역할 | 관심 영역 |
 |---|---|---|
 | [obra/superpowers](https://github.com/obra/superpowers) | 코딩 규율 | TDD, brainstorm, plan, subagent, review 스킬 변경 |
-| [code-yeongyu/omo](https://github.com/code-yeongyu/omo) | 실행 엔진 (OMC 후속) | 실행 모드, 모델 라우팅, rate limit 대기, 멀티에이전트 |
 | [garrytan/gstack](https://github.com/garrytan/gstack) | 역할 기반 스프린트 | /office-hours, /qa, /browse, /design, /cso 변경 |
+| [ruvnet/ruflo](https://github.com/ruvnet/ruflo) | 멀티에이전트 스웜 오케스트레이션 | hive-mind, MCP 도구, 스웜 토폴로지, 메모리 시스템 변경 |
 
 ## 확인 방법
 
@@ -31,8 +31,8 @@ description: Tracks upstream changes from Superpowers, omo, and gstack repositor
 ## 주간 갱신 시 체크리스트
 
 - [ ] Superpowers 최신 릴리스 확인 (현재: v5.0.6)
-- [ ] omo 최신 업데이트 확인 (현재: 04-05, 릴리스 태그 확인필요)
 - [ ] gstack 최신 커밋 확인 (릴리스 없음, 커밋 기반)
+- [ ] Ruflo 최신 버전 확인 (현재: v3.5.65, npm: claude-flow@alpha)
 - [ ] 우리 문서에 영향 있는 변경 요약
 - [ ] 필요 시 스냅샷 또는 지침 업데이트
 

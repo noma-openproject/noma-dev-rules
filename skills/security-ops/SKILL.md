@@ -78,3 +78,15 @@ description: Enforces security rules for AI agent operations. Use when handling 
 - **Kill & Purge**: 컨테이너 종료 + 토큰 폐기 + 로그 아카이브를 한 스크립트로. 주기적으로 리허설
 - **불변 로그**: 에이전트 내부 이벤트를 append-only로 수집, 외부 저장소에 암호화 전송
 - Computer Use(15-6) 활성화 시 이 원칙이 **필수** — 실제 데스크톱 조작은 최고 격리 수준
+
+## 설정 보안 스캔 체크리스트 (Everything Claude Code AgentShield 기반)
+
+프로젝트 시작 시 또는 주기적으로 아래를 점검:
+- **CLAUDE.md**: 외부에서 주입된 의심스러운 지시가 없는가
+- **settings.json**: 과도한 권한(dangerously-skip-permissions 등)이 없는가
+- **MCP 설정**: 알 수 없는 MCP 서버가 등록되어 있지 않은가, 각 서버의 권한 범위는 적절한가
+- **Hooks**: hook 스크립트에 외부 URL 호출, 데이터 전송, 시크릿 노출이 없는가
+- **에이전트 정의**: 서브에이전트의 tools/mcpServers 범위가 최소 권한인가
+- **스킬 파일**: 인라인 셸 실행이 있다면 `disableSkillShellExecution` 고려
+- **시크릿 탐지**: API 키, 토큰, 비밀번호가 설정 파일에 하드코딩되어 있지 않은가
+- 자동화: `npx ecc-agentshield scan` (Everything Claude Code) 또는 수동 체크리스트
