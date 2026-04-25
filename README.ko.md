@@ -1,106 +1,86 @@
-# noma-dev-rules
+# noma-dev-rules (한국어)
 
-**AI 에이전트 프로젝트 운영 규칙을 플러그인으로.** 도구 현황, 보안, 프론트 파이프라인, 브라우저 자동화, 서브에이전트 계약, headless lane, 유지보수 리뷰 — 전부 자동 트리거.
+**v2.3.0** — "사람(나)이라는 병목 줄이기 + 기획 완성도" 테마
 
-[English](README.md)
+AI 에이전트 주도 개발을 위한 Claude Code 플러그인. 솔로 개발자와 소규모 팀이 **병목이 되지 않고**, 에이전트가 기획대로 기능을 완성하게 만들기 위한 운영 규칙.
 
-**v2.2.0 — 2026-04-18 업데이트:** Opus 4.7 (04-16), Claude Design (04-17), Codex 04-17 대규모, 유지보수 리뷰 스킬 신규, 정량 임계값 체계, 학습 루프.
+## v2.3.0 업데이트 (2026-04-24)
 
-## 이게 뭔가요
+**지난 7일간(2026-04-18 ~ 2026-04-24) 17건 업데이트:**
 
-코딩 에이전트에게 **운영 감각**을 주는 스킬 기반 플러그인입니다. 코드를 어떻게 짜는가가 아니라, *어떤 도구를 쓰고, 이번 주 뭐가 깨졌고, 보안은 어떻게 지키고, 언제 fallback하는가, 기존 코드가 건강한가*를 알려줍니다.
+### Critical 5
+- **GPT-5.5 출시** (2026-04-23) — Codex 기본 추천. 모델 비교표 갱신. **환각률 86% 경고** (Opus 4.7은 36%)
+- **Claude Advisor Tool** (2026-04-09, 공식 베타) — 한 API 호출 안에서 Executor + Advisor 패턴. Sonnet+Opus advisor: solo 대비 11.9% 저렴, SWE-bench Multilingual +2.7pp
+- **🚨 MCP STDIO 설계 결함** — 10 CVE, 20만 취약 인스턴스. Anthropic 패치 거부. **각 팀이 애플리케이션 레벨에서 방어** — 6가지 필수 완화책
+- **Claude Code 폭풍 업데이트 v2.1.92~v2.1.118** — `/ultraplan` (클라우드 3+1 패턴), `/recap`, `/usage`, Prompt caching 1H TTL, vim visual mode
+- **AGENTS.md 표준 재작성** — Linux Foundation AAIF. AGENTS.md = single source of truth. Princeton 연구: 런타임 -28.6%, 토큰 -16.6%
 
-[Superpowers](https://github.com/obra/superpowers)(코딩 규율)와 [gstack](https://github.com/garrytan/gstack)(역할 기반 스프린트)와 함께 사용 가능. 충돌 없음 — 레이어가 다릅니다.
+### High 5
+- Cursor 3 + Composer 2 + Windsurf Wave 13 SWE-1.5 (모델 비교표)
+- Codex GPT-5.5 통합
+- **Spec-Driven Development 섹션 신설** (Requirements → Design → Tasks → Implementation, 계층적 컨텍스트 관리)
+- **Orchestrator + Checker 패턴** (Claude Code Task System, 자기검증)
+- Routines 세부 (트리거 3종, GitHub 이벤트 13+, 일일 한도)
 
-```
-[Ruflo/claude-mem]   → 실행 엔진 / 메모리 (선택)
-[Superpowers]       → 코딩 규율 (brainstorm, TDD, 계획, 리뷰)
-[noma-dev-rules]    → 운영 규칙 (도구 선택, 보안, 디자인, 유지보수, known issues)
-```
+### Medium 7
+- Opus 4.7 AWS Bedrock 출시 (2026-04-20)
+- 생태계 성장: Superpowers 121K, Hermes v0.8.0, Paperclip 43K, CE 11K
+- Computer Use 3플랫폼 확장 (+ Cowork)
+- **서브에이전트 고급 필드**: `skills:` preload, `memory:` (user/project/local/none), `color:`, permissionMode 상속
+- Windsurf Cascade 하네스 세부
+- OpenAI Astral 인수 (uv+ruff, 2026-03-19)
+- 한국어/일본어 (CJK) 수정 (v2.1.84+)
 
-## 빠른 시작
+## 핵심 원칙
 
-### Claude Code
+- **탐색 → 계획 → 실행** 프로토콜. 여러 접근법 비교 시 `/ultraplan`
+- **TDD Iron Law**: 실패하는 테스트 없이 프로덕션 코드 금지
+- **완료 = 테스트 통과 + lint clean + 타입체크 clean**
+- **"안 된다"로 끝내지 말기** — 우회안, 축소판, 다음 검증 단계 필수
+- **세 단계 신뢰도 태그**: 확실 / 추측 / 확인필요
+- **한국어 존댓말** 기본 소통 언어
+
+## 9개 스킬, 3개 에이전트, 2개 훅
+
+### 스킬
+- `tool-landscape` — 모델 비교, 가격, known issues
+- `security-ops` — 외부 컨텐츠 처리, MCP STDIO 완화책
+- `frontend-pipeline` — 디자인 파이프라인 (Claude Design, Figma MCP 등)
+- `browser-automation` — 브라우저 4계층 (Playwright → agent-browser → Scrapling → Computer Use)
+- `subagent-ops` — Advisor 패턴, Orchestrator+Checker, 에이전트 memory/skills/color
+- `headless-lane` — thin lane (--bare -p, codex exec)
+- `project-interview` — 모호한 요청 구조화 인터뷰
+- `upstream-tracker` — Superpowers, GSD, Hermes, Paperclip, CE 등 추적
+- `maintainability` — `/ultrareview` + 정량 임계값
+
+### 에이전트
+- `browser-verifier` — 스크린샷 + 반응형 체크
+- `security-reviewer` — MCP/권한/시크릿
+- `design-auditor` — 제너릭 AI 미감 탐지기
+
+### 훅
+- `auth-preflight.sh` — stale auth 감지
+- `browser-cleanup.sh` — Chrome 정리
+
+## 호환 프레임워크
+
+- [Superpowers](https://github.com/obra/superpowers) — TDD, 계획
+- [gstack](https://github.com/garrytan/gstack) — YC 스타일 다역할 거버넌스
+- [claude-code-spec-workflow](https://github.com/Pimzino/claude-code-spec-workflow) — SDD (Pimzino)
+
+## 문서
+
+전체 레퍼런스:
+- `docs/project-operation-rules-v2.3.md` — 불변 원칙 (~2660줄)
+- `docs/tool-landscape-snapshot-2026-04-24.md` — 주 1회 갱신 도구 현황
+- `docs/antigravity-frontend-policy.md` — Antigravity 전용 정책
+
+## 설치
 
 ```bash
 /plugin marketplace add noma-openproject/noma-dev-rules
 /plugin install noma-dev-rules
 ```
-
-### Codex
-
-```
-Fetch and follow instructions from https://raw.githubusercontent.com/noma-openproject/noma-dev-rules/main/.codex/INSTALL.md
-```
-
-### 수동 설치
-
-```bash
-git clone https://github.com/noma-openproject/noma-dev-rules.git ~/.claude/plugins/noma-dev-rules
-```
-
-## 스킬 (자동 트리거)
-
-| 스킬 | 트리거 조건 |
-|---|---|
-| **tool-landscape** | 도구 선택, 모델 비교, known issues 확인, quota 문제 |
-| **security-ops** | 외부 콘텐츠 처리, 플러그인 설치, auth 이슈, 권한 설정 |
-| **frontend-pipeline** | UI 구축, 디자인 구현, CSS/React 작업 (Stitch/Figma/v0/Claude Design/paper.design) |
-| **browser-automation** | E2E 테스트, 시각 검증, 사이트 스크래핑, Computer Use |
-| **subagent-ops** | 서브에이전트 spawn, 작업 위임, 병렬 실행 |
-| **headless-lane** | CI 세팅, scheduled task, 비대화형 자동화 |
-| **project-interview** | 모호하거나 불완전한 지시를 받았을 때 |
-| **upstream-tracker** | 외부 프레임워크(Superpowers/gstack/Hermes) 변경 추적 |
-| **maintainability** ⭐ v2.2.0 | 주요 merge 전, Phase 전환, 월 1회 감사 — `/ultrareview` + 정량 임계값 + 학습 루프 |
-
-## 에이전트
-
-| 에이전트 | 역할 | 권한 |
-|---|---|---|
-| **browser-verifier** | 스크린샷 + console + network 검증 | 읽기 전용 |
-| **security-reviewer** | 외부 위협, 환각 API, 자격 증명 노출 검토 | 읽기 전용 |
-| **design-auditor** | AI 느낌 체크, 디자인 시스템 준수 검토 | 읽기 전용 |
-
-## Hooks
-
-| Hook | 이벤트 | 목적 |
-|---|---|---|
-| **auth-preflight** | SessionStart | 장시간 세션 전 auth 상태 확인 |
-| **browser-cleanup** | Stop | 고아 Chrome/Chromium 프로세스 정리 |
-
-## 주간 스냅샷에 뭐가 있나
-
-`tool-landscape` 스킬은 매주 갱신되는 스냅샷을 포함합니다:
-- **이번 주 변경사항** (엄격한 7~10일 창)
-- **알려진 이슈 & workaround** (심각도 포함)
-- **모델 비교** (Gemini / GPT-5.4 / Claude Opus 4.6/4.7)
-- **가격** (Antigravity / Cursor / Claude Code / Codex / Claude Design)
-- **한국/Windows 주의사항**
-
-## v2.2.0 주요 변경
-
-- **Opus 4.7 대응** — xhigh effort level, task budgets, 새 토크나이저 1.0~1.35x, burn rate 2.4~2.6x 경고
-- **`/ultrareview` 통합** — Claude Code 신규 슬래시 명령 활용
-- **정량 임계값 체계** — 파일 1200줄, CC 15/25, lint 0, 커버리지 70%
-- **학습 루프** — troubleshootings → feedback → CLAUDE.md 자동 주입 4단계
-- **작업 디렉토리 구조** — orders/plans/working/report/feedback/troubleshootings 6폴더
-- **Claude Design** (04-17) — 프론트 파이프라인 Stage 2c로 편입
-- **Codex macOS Computer Use** — 보안 규칙에 2플랫폼 확장
-- **Routines** — 월 1회 `/ultrareview` 자동화 가능
-
-## 전체 레퍼런스 문서
-
-`docs/` 폴더에 운영 규칙 전문(~2,000줄), 도구 스냅샷(~400줄), Antigravity 프론트 정책(~330줄)이 있습니다. 스킬이 필요할 때 자동 참조하므로 직접 읽지 않아도 됩니다.
-
-## 호환성
-
-| 플랫폼 | 상태 |
-|---|---|
-| Claude Code | ✅ 플러그인 마켓플레이스 |
-| Codex | ✅ 수동 설치 |
-| Cursor | ✅ 플러그인 마켓플레이스 |
-| Claude.ai | ⚠️ docs/를 프로젝트 지식으로 사용 |
-| Gemini CLI | 🔜 예정 |
 
 ## 라이선스
 

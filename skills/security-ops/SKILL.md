@@ -23,6 +23,30 @@ description: Enforces security rules for AI agent operations. Use when handling 
 - 버전 고정(pinning) — latest 태그가 아닌 특정 버전
 - 격리 환경에서 테스트 후 승격
 
+## 🚨 MCP STDIO 설계 결함 — 긴급 (v2.3.0 신규)
+
+**2026-04-15 OX Security 공개** — **10개 CVE, 200,000개 취약 인스턴스 추정, 7,000+ 공개 서버, 150M+ 다운로드 영향**. Anthropic은 "expected behavior"로 분류, 프로토콜 패치 거부. **각 팀이 애플리케이션 레벨에서 방어해야 함**.
+
+### 공격 패턴 4종
+1. **Unauthenticated UI Injection** (LangFlow 915+ 노출된 인스턴스, CVE 미발행)
+2. **Hardening Bypass** (Upsonic CVE-2026-30625, Flowise GHSA-c9gw-hvqq-f33r)
+3. **Zero-click Prompt Injection** — Windsurf CVE-2026-30615만 진짜 zero-click, Claude Code/Cursor/VS Code/Gemini-CLI/Copilot는 권한 프롬프트 존재
+4. **Malicious Marketplace** — 11개 MCP 레지스트리 중 9개 포이즌 성공 (구체 이름 비공개)
+
+### 필수 완화책 6종
+1. **Manifest-only execution** — raw user string 금지, pre-defined server aliases만
+2. **Strict sandboxing** — low-privilege, 필요한 1개 서버만 통신 허용
+3. **Explicit opt-ins** — dynamic STDIO args 시 명시적 flag 요구 (린터 감지 가능)
+4. **Monitor invocations** — 예상 외 프로세스 실행 모니터링, 외부 URL 유출 차단
+5. **마켓플레이스 설치 시 manifest 검증** — publisher allowlist + 격리 테스트
+6. **업데이트 적시 적용** — 패치 없는 서비스는 사용자 입력에 노출하지 말거나 비활성화
+
+### 팀별 의사결정
+- 신규 MCP 도입 보류 (검증 전)
+- 기존 MCP 6가지 완화책 순차 적용
+- Claude Code 환경: mcp.json 수정 감시 hook 설치
+- 금융/의료: protocol patch 전까지 STDIO 최소화, SSE transport 검토
+
 ## Approval Surface 분리
 
 - `approval_policy=never`는 raw MCP writes의 무인 실행을 **보장하지 않는다**
@@ -45,7 +69,12 @@ description: Enforces security rules for AI agent operations. Use when handling 
 - 에이전트를 root로 실행하지 않는다
 - 고위험 작업(프로덕션 배포, DB 마이그레이션)은 반드시 사람 승인
 
-## Computer Use 보안 (연구 미리보기)
+## Computer Use 보안 (3플랫폼, v2.3.0 Cowork 추가)
+
+**3개 플랫폼 모두 동일 보안 규칙 적용:**
+- Claude Desktop Computer Use (2026-03-23~, Pro/Max macOS)
+- Codex macOS Computer Use (2026-04-17~, ChatGPT Plus/Pro, EEA/UK/스위스 제외)
+- **Claude Cowork Computer Use** (2026-04-초~, Pro/Max, Dispatch 결합)
 
 - computer use는 **가장 높은 권한 수준** — 최고 보안 경계 적용
 - 테스트/개발 전용 환경에서 시작. 프로덕션 데스크톱에서 바로 켜지 않는다
@@ -54,6 +83,7 @@ description: Enforces security rules for AI agent operations. Use when handling 
 - 모든 행동은 스크린샷 로그로 감사 추적
 - API 커넥터가 있으면 반드시 커넥터 우선 — computer use는 fallback
 - 비밀번호 입력, 2FA, 결제 확인은 사람이 직접 수행
+- **Cowork + Dispatch 특수 주의**: 사용자 부재 시 자율 실행되므로 **권한 확장 리스크 최대**. 사전 정의된 task 화이트리스트 + 모바일 task 큐잉 시 컨펌 플로우 필수
 
 ## AI 코드 = 외부 종속성
 

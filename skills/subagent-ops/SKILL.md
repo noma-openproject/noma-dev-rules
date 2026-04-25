@@ -1,9 +1,19 @@
 ---
 name: subagent-ops
-description: Subagent operation contracts for Claude Code and Codex. Use when spawning subagents, delegating tasks to agents, using parallel execution, configuring TOML custom agents, or when the user mentions subagent, multi-agent, spawn, delegate, Scout, Mutator, Verifier, Explorer, Worker, or spawn_agents_on_csv.
+description: Subagent operation contracts for Claude Code and Codex. Use when spawning subagents, delegating tasks to agents, using parallel execution, configuring TOML custom agents, setting up advisor pattern, configuring agent memory or skills preload, implementing orchestrator+checker pattern, or when the user mentions subagent, multi-agent, spawn, delegate, Scout, Mutator, Verifier, Explorer, Worker, advisor, agent memory, agent skills, spawn_agents_on_csv, or agent_teams.
 ---
 
-# Subagent Operations — 서브에이전트 운영 계약
+# Subagent Operations — 서브에이전트 운영 계약 (v2.3.0)
+
+## 3단계 전략
+
+**사람 병목 최소화를 위한 Level 구조:**
+
+| Level | 전략 | 언제 사용 |
+|---|---|---|
+| 1 | 단순 모델 분리 (Main: Opus/GPT-5.5, Sub: Sonnet/Haiku/GPT-5.4 mini) | 대부분의 일상 작업 |
+| 2 | **Advisor Pattern** (한 API 요청 안 executor + advisor) | 반복 작업 + 가끔 판단 포인트 |
+| 3 | **Orchestrator + Checker** (두 세션 공유 task list) | Merge 게이트, Phase 전환 |
 
 ## Spawn 규칙
 
@@ -21,6 +31,136 @@ description: Subagent operation contracts for Claude Code and Codex. Use when sp
 
 - Mutator는 반드시 worktree 분리
 - Verifier는 코드 수정 권한 없음
+
+## Advisor Pattern (v2.3.0 신규, 2026-04-09 공식 베타)
+
+**공식 벤치마크 (Anthropic 자체):**
+- Sonnet 4.6 + Opus 4.7 advisor: SWE-bench Multilingual 74.8% (solo 72.1% 대비 +2.7pp), 비용 11.9% 저렴
+- Haiku 4.5 + Opus 4.7 advisor: BrowseComp 41.2% (solo 19.7%의 2배), Sonnet solo 대비 85% 저렴
+
+**API 호출:**
+```python
+response = client.beta.messages.create(
+    model="claude-sonnet-4-6",          # Executor
+    betas=["advisor-tool-2026-03-01"],
+    tools=[{
+        "type": "advisor_20260301",
+        "name": "advisor",
+        "model": "claude-opus-4-7"      # Advisor
+    }],
+    messages=[...]
+)
+```
+
+**사용 조건:**
+- ✅ 장시간 에이전트 (대부분 routine, 가끔 판단)
+- ✅ 코드 리뷰, 브라우저 자동화, 멀티스텝 research
+- ❌ Single-turn Q&A (executor가 호출 안 함 → 오버헤드만)
+- ❌ Bedrock/Vertex (미지원, 확인필요), LiteLLM 프록시 (현재 broken)
+
+**Claude Code `/advisor` 토글 v2.4.0+ — 확인필요** (한 커뮤니티 출처만 주장)
+
+## Orchestrator + Checker Pattern (v2.3.0 신규)
+
+**세션을 분리해서 자기편향 제거:**
+
+```bash
+# 공유 task list ID로 멀티 세션 조율
+claude --task-list <shared-id>
+```
+
+- **세션 A (Orchestrator)**: 메인 구현. Task 생성/갱신/완료 마크
+- **세션 B (Checker)**: 완료된 Task를 별도 세션에서 읽어 품질 검증. 누락 발견 시 follow-up Task 추가
+
+**해결하는 3가지 문제:**
+1. Agent Amnesia (세션 끊김)
+2. Self-bias (자기 코드 "잘 짜였다" 편향)
+3. Partial completion (10/12 구현 후 "완료")
+
+**Checker 프롬프트 템플릿:**
+```
+Read the task list (id: <shared-id>). For each task marked 'completed':
+1. Read the actual commit diff
+2. Verify the implementation matches the task description
+3. Run relevant tests
+4. If anything is missing/wrong, add a follow-up task
+Do NOT mark anything as completed yourself.
+```
+
+## 서브에이전트 고급 필드 (공식 문서, v2.3.0 반영)
+
+### `skills:` — 스킬 preload
+```yaml
+---
+name: api-developer
+description: Implement API endpoints following team conventions
+skills:
+  - api-conventions
+  - error-handling-patterns
+---
+```
+- **전체 스킬 내용이 컨텍스트에 주입됨** (단순 invocable 아니라 already-loaded)
+- 서브에이전트는 부모 세션의 스킬을 **상속하지 않음** — 명시적 나열 필요
+- `disable-model-invocation: true` 스킬은 preload 불가
+
+### `memory:` — 세션 간 학습
+```yaml
+---
+name: code-reviewer
+memory: project
+---
+```
+
+| Scope | 위치 | 적용 범위 |
+|---|---|---|
+| `user` | `~/.claude/agent-memory/<n>/` | 모든 프로젝트 |
+| `project` | `.claude/agent-memory/<n>/` (git 커밋 가능) | 해당 프로젝트 — **권장 기본값** |
+| `local` | `.claude/agent-memory/<n>/` (.gitignore) | 해당 프로젝트, 개인 |
+| `none` | 없음 | 영구성 없음 |
+
+- 시스템 프롬프트에 MEMORY.md의 첫 200줄/25KB 자동 주입
+- 초과 시 "curate하라"는 지시 자동 포함 → 에이전트가 스스로 정리
+- Read/Write/Edit 도구 자동 활성화
+
+### `color:` — UI 구분
+```yaml
+color: red
+```
+- 여러 서브에이전트 동시 실행 시 시각 구분
+
+### `permissionMode` 상속 규칙 (중요)
+- 부모 `bypassPermissions` / `acceptEdits` → 서브에이전트 **강제 상속** (override 불가)
+- 부모 Auto mode → 서브에이전트도 Auto mode (자체 permissionMode 무시됨)
+- `.git`, `.claude`, `.vscode`, `.idea`, `.husky` 쓰기는 여전히 승인 프롬프트 (단, `.claude/commands`, `.claude/agents`, `.claude/skills`는 예외)
+
+## Agent Teams (실험 기능, v2.3.0 경고 업데이트)
+
+**활성화:**
+```bash
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+```
+
+- Lead agent가 공유 task list로 teammate 조율
+- Teammate 간 직접 소통 (서브에이전트와 차이)
+- 20~30초 spawn, 1분 내 결과 생산
+
+**비용 경고:**
+- 3 teammates = 단일 세션의 **3~4배 토큰**
+- 의존성 강한 순차 작업에는 **과잉. 기본값으로 쓰지 말라**
+
+**권장 사용처:**
+- ✅ 경쟁 가설 디버깅
+- ✅ 크로스 레이어 변경 (프론트/백/테스트 각 teammate)
+- ✅ 대규모 분류/인벤토리
+- ❌ 의존성 강한 순차 작업
+- ❌ 같은 파일 동시 편집
+
+## Ultraplan 3+1 (Cloud)
+
+Claude Code v2.1.92~101 (2026-04-06~10):
+- 3 parallel exploration agents + 1 critique agent
+- `/ultraplan "<task>"` → 자동 cloud environment 생성 → 웹 에디터 리뷰 → 원격 실행 or 로컬 pull-back
+- 커뮤니티 보고: 순차 14분 → 병렬 3분 40초 (확인필요)
 
 ## Codex 서브에이전트 GA 대응
 
@@ -49,4 +189,6 @@ description: Subagent operation contracts for Claude Code and Codex. Use when sp
 ## 비용
 
 - 경량 모델(Sonnet/Haiku/GPT-5.4 mini/Spark) 우선
+- **Advisor Pattern 우선 고려** — 단순 분리보다 더 효과적
 - model override 무시 이슈 → spawn 후 실제 모델 확인
+- Agent Teams는 3~4x 토큰 — 명시적 정당화 없으면 피한다

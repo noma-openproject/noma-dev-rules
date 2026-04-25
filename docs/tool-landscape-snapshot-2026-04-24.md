@@ -1,29 +1,87 @@
 # AI 개발 도구 현황 스냅샷
 
-> **스냅샷 날짜: 2026-04-18**
+> **스냅샷 날짜: 2026-04-24**
 > 이 문서는 빠르게 변하는 도구 현황, 모델 비교, 가격, quota, 기능 상태를 담는 별도 문서입니다.
-> 프로젝트 운영 지침(v2.2)의 원칙은 그대로 유지하면서, 이 문서만 주기적으로 갱신합니다.
+> 프로젝트 운영 지침(v2.3)의 원칙은 그대로 유지하면서, 이 문서만 주기적으로 갱신합니다.
 > **갱신 주기: 최소 주 1회** (또는 주요 릴리스 발생 시 즉시)
 
 ---
 
-## 0. 이번 주 Delta & Known Issues (2026-04-10~04-18)
+## 0. 이번 주 Delta & Known Issues (2026-04-18~04-24)
 
 > **실무 팀은 비교표보다 이 섹션을 먼저 본다.** "이번 주"는 엄격하게 7~10일 창. 그 이전 항목은 "최근 30일 notable"로 내린다.
 
-### 🚨 긴급: Haiku 3 모델 retirement 2026-04-19 (내일)
+### 🚨 매우 중요: GPT-5.5 출시 (2026-04-23)
 
-**claude-3-haiku-20240307** 모델이 **04-19 retirement** 됩니다. 이후 요청은 에러 반환. **Haiku 4.5로 마이그레이션 필요**. (출처: Anthropic 공식 release notes, 확실)
+**OpenAI 공식 출시, 8개 소스 교차검증 완료.**
 
-### 🚨 긴급: Sonnet 4.5/4 1M 컨텍스트 베타 종료 예정
+- **접근**: ChatGPT Plus/Pro/Business/Enterprise + Codex (CLI/IDE/앱). **API는 "very soon" (아직 아님)**
+- **Codex 내부 코드명**: "Spud" (Axios 보도)
+- **가격 (API 예정)**: 
+  - GPT-5.5: **$5/$30 per MTok** (GPT-5.4 $2.50/$15 대비 **2배**)
+  - GPT-5.5 Pro: $30/$180 per MTok (GPT-5.4 Pro와 동일)
+  - Batch/Flex: 표준의 절반 / Priority: 2.5배
+- **컨텍스트**: 1M (API), **400K (Codex)**
+- **토큰 효율**: Codex에서 **출력 토큰 40% 감소** (동일 지연시간). GPT-5.5가 자체 서빙 인프라 재작성 → 토큰 생성 20% 더 빠름
 
-**2026-04-30**에 Sonnet 4.5 및 Sonnet 4의 1M 컨텍스트 베타가 종료됩니다. 이후 `context-1m-2025-08-07` 헤더는 효력 없음. 200K 초과 요청은 에러 반환. **Sonnet 4.6 또는 Opus 4.7으로 마이그레이션 필요** (표준 가격으로 1M 지원).
+**벤치마크 (공식):**
+| 벤치 | GPT-5.5 | Opus 4.7 | Gemini 3.1 Pro |
+|---|---|---|---|
+| SWE-Bench Pro | 58.6% | **64.3%** | — |
+| BrowseComp | 84.4% | — | **85.9%** |
+| Expert-SWE (20h 작업, OpenAI 내부) | **73.1%** | — | — |
+| OSWorld-Verified (computer use) | **78.7%** | — | — |
+| GDPval (44 직업) | **84.9%** | — | — |
 
-### 🚨 긴급: Sonnet 4 / Opus 4 모델 retirement 2026-06-15
+**⚠️ 치명적 약점: 환각률**
+- Artificial Analysis **AA-Omniscience 환각률**: GPT-5.5 **86%**, Opus 4.7 36%, Gemini 3.1 Pro Preview 50%
+- **GPT-5.5는 모르는 것도 자신감 있게 답함 — Opus 4.7의 2.4배**
+- **금융/의료/법률 등 정확도 중시 도메인에서는 Opus 4.7 우선 사용**
 
-`claude-sonnet-4-20250514`, `claude-opus-4-20250514` 모두 **06-15 retirement**. Sonnet 4.6 / Opus 4.7 권장.
+### 🚨 긴급 보안: MCP STDIO 설계 결함 — 10 CVE (2026-04-15)
 
-### 이번 주 주요 변경
+**OX Security 리서치 공개, 6개 독립 소스 교차검증.**
+
+- **영향 규모**: 10개 CVE, **200,000개 취약 인스턴스 추정**, 7,000+ 공개 서버, 150M+ 다운로드
+- **Anthropic 입장**: "expected behavior" — **프로토콜 패치 거부**
+- **영향 도구**: Claude Code, Cursor, VS Code, Windsurf, Gemini-CLI, GitHub Copilot (단, **Windsurf CVE-2026-30615만 진짜 zero-click**)
+- **마켓플레이스**: 11개 MCP 레지스트리 중 **9개 포이즌 성공** (OX 비공개로 어느 9개인지 미공개)
+- **완화책**: manifest-only execution, strict sandboxing, explicit opt-ins, monitor invocations → 상세는 지침 섹션 14-3
+
+**즉시 조치:**
+1. 기존 MCP 서버 publisher allowlist 확인
+2. 신규 MCP 설치 시 manifest 강제 검증
+3. Windsurf 사용 팀은 CVE-2026-30615 패치 버전 확인
+
+### 이번 주 주요 변경 (04-18~24)
+
+| 날짜 | 플랫폼 | 변경 | 영향도 |
+|---|---|---|---|
+| **04-23** | **OpenAI** | **GPT-5.5 출시** (ChatGPT + Codex). Codex 기본 추천 모델로 GPT-5.4 대체 | **매우 높음** |
+| **04-23** | **Claude Code v2.1.118** | Vim visual mode (v, V), **/cost + /stats → /usage 통합** | 중간 |
+| **04-22** | **Codex** | GPT-5.5 통합 (IDE/CLI/앱 업데이트 필요), in-app 브라우저 확장 | 높음 |
+| **04-20** | **AWS Bedrock** | **Claude Opus 4.7 + Haiku 4.5** 출시 (US East VA, Asia Tokyo, EU Ireland, EU Stockholm). 10K rpm/region | 높음 |
+| **04-17** | **Claude Code v2.1.113** | Native binary (JS 번들 아님), `sandbox.network.deniedDomains` 차단 설정 | 중간 |
+| **04-15** | **보안** | **🚨 MCP STDIO 결함 공개** — 10 CVE, 200K 취약 인스턴스 | **매우 높음 (보안)** |
+| **04-14** | **Claude Code** | **Routines 세부 확인**: 트리거 3종, 13+ GitHub 이벤트, 일일 한도 Pro 5/Max 15/Team·Enterprise 25, 베타 헤더 `experimental-cc-routine-2026-04-01`, `claude/` prefix 브랜치 기본 | 높음 |
+| **04-9** | **Anthropic API** | **Advisor Tool 공식 베타** (섹션 13-1 Level 2). 벤치 SWE-bench Multilingual 74.8% (Sonnet+Opus advisor), 비용 11.9% 절감 | **매우 높음 (비용)** |
+
+### 이전 주차의 항목 (04-10~04-17, 유지)
+
+| 날짜 | 변경 |
+|---|---|
+| 04-17 | Claude Design (Opus 4.7 기반), Codex 04-17 대규모 업데이트 (Computer Use 등), AGENTS.md 표준 확립 |
+| 04-16 | **Claude Opus 4.7 GA**, Claude Code v2.1.111~112 (xhigh, Auto mode, /ultrareview) |
+| 04-14 | Claude Code **Routines** 출시, 데스크톱 앱 재설계 |
+| 04-06~10 | Claude Code `/ultraplan` 등장 (v2.1.92~101) |
+
+### 🚨 긴급 deprecation (유지)
+
+- **04-19**: Haiku 3 retirement **이미 진행됨** — 여전히 못 옮긴 팀은 즉시 Haiku 4.5로
+- **04-30**: Sonnet 4.5/4의 1M 컨텍스트 베타 종료 — Sonnet 4.6/Opus 4.6으로 마이그레이션
+- **06-15**: Sonnet 4 / Opus 4 retirement
+
+### 최근 30일 Notable (유지)
 
 | 날짜 | 플랫폼 | 변경 | 영향도 |
 |---|---|---|---|
@@ -50,6 +108,9 @@
 | 04-02 | DeepMind | "AI Agent Traps" 논문: 서브에이전트 스포닝 함정 58-90% 성공률 |
 | 04-02 | Alibaba | Qwen3.6-Plus: 1M 컨텍스트, $0.29/M, Claude Code 호환 |
 | 04-01 | Claude Code | v2.1.89: PermissionDenied hook, PreToolUse defer, disableSkillShellExecution |
+| 03-19 | **OpenAI** | **Astral (uv + ruff) 인수** — Python 툴체인. uv 월 126M 다운로드, ruff 기존 툴 대비 1000x 빠름 |
+| 03-19 | Windsurf | Pro 가격 $15 → $20 (Cursor와 동일) + Max $200 tier 신설 |
+| 03-14 | Anthropic | **Agent Skills 오픈 스펙 공개** — MCP처럼 공식 표준화. SKILL.md + YAML frontmatter. `/v1/skills` API
 | 04-01 | Codex | Windows sandbox OS 레벨 네트워크 격리, device code 로그인, `codex exec` prompt-plus-stdin, 동적 bearer 토큰 |
 | 03-27 | Claude Code | v2.1.86: `--bare`, `--channels`, `rate_limits`, effort frontmatter |
 | 03-26 | Codex | 플러그인 1급 워크플로우, 서브에이전트 v2, app-server TUI 기본, 레거시 도구 제거 |
@@ -90,25 +151,29 @@
 
 ## 1. 모델별 프론트엔드 강약점 비교
 
-> 이 표는 2026-04-18 기준입니다. 모델 업데이트 시 재평가 필요.
-> ⚠️ Sonnet 4.5/4의 1M 컨텍스트 베타가 04-30 종료. Haiku 3 모델 04-19 retirement. Sonnet 4/Opus 4 모델 06-15 retirement.
+> 이 표는 2026-04-24 기준입니다. 모델 업데이트 시 재평가 필요.
+> ⚠️ Sonnet 4.5/4의 1M 컨텍스트 베타가 04-30 종료. Haiku 3 모델 04-19 이미 retirement. Sonnet 4/Opus 4 모델 06-15 retirement.
 
-| 영역 | Gemini 3.1 Pro | GPT-5.4 / Codex | Claude Opus 4.7 | Claude Opus 4.6 | Cursor Composer 2 |
-|---|---|---|---|---|---|
-| 레퍼런스 → 구현 속도 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| 무에서 디자인 창조 | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| DOM/CSS 구조 정확도 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| 인터랙티브 애니메이션 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| 복잡한 로직/아키텍처 | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| 코드 품질/재작업 최소화 | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| 대규모 코드베이스 | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| 환각/일관성 | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| 장시간 자율 실행 | ⭐⭐ | ⭐⭐⭐⭐⭐ (7시간+) | ⭐⭐⭐⭐⭐ (self-verification) | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
-| 비전/이미지 이해 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ (2576px) | ⭐⭐⭐⭐ (1568px) | ⭐⭐⭐ |
-| 속도 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ (Spark 1000+ tok/s) | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| API 비용 (입력/M) | 무료~$1.25 | $2~$10 | $5~$25 | $5~$15 | $0.50 |
+| 영역 | Gemini 3.1 Pro | **GPT-5.5** ⭐신규 | GPT-5.4 / Codex | Claude Opus 4.7 | Claude Sonnet 4.6 | Cursor Composer 2 | Windsurf SWE-1.5 |
+|---|---|---|---|---|---|---|---|
+| 레퍼런스 → 구현 속도 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| 무에서 디자인 창조 | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| 복잡한 로직/아키텍처 | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| 코드 품질/재작업 최소화 | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| 대규모 코드베이스 | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **환각률 (AA-Omniscience)** ⭐ | 50% | **86% 🚨** | — | **36% ✅** | — | — | — |
+| Computer Use | ⭐⭐ | ⭐⭐⭐⭐⭐ (OSWorld 78.7%) | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| 장시간 자율 실행 | ⭐⭐ | ⭐⭐⭐⭐⭐ (멀티스텝 ↑) | ⭐⭐⭐⭐⭐ (7시간+) | ⭐⭐⭐⭐⭐ (self-verification) | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| 속도 (tok/s) | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ (Codex 토큰 40% 감소) | ⭐⭐⭐⭐⭐ (Spark 1000+) | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ (200+) | ⭐⭐⭐⭐⭐ (950 on Cerebras) |
+| API 비용 (입력/M) | 무료~$1.25 | **$5~$30** (API "soon") | $2~$10 | $5~$25 | $3 | $0.50 | 번들 ($20/mo) |
 
-**Opus 4.7 vs 4.6 핵심 차이:**
+**⚠️ GPT-5.5 핵심 경고 (확인, 매우 중요):**
+- **환각률 86%** (Opus 4.7 36%의 2.4배, Gemini 3.1 Pro 50%의 1.7배)
+- 모르는 걸 자신감 있게 답함 — **금융/의료/법률 등 정확도 중시 도메인에서 Opus 4.7 우선**
+- Agentic 능력은 강함 (OSWorld 78.7%, GDPval 84.9%, Expert-SWE 73.1%)
+- Codex에서 GPT-5.4 대비 출력 토큰 40% 감소, 같은 지연시간
+
+**Opus 4.7 vs 4.6 핵심 차이 (유지):**
 - **가격 동일** ($5/$25)이지만 **토큰 소비가 1.0~1.35x 증가** (새 토크나이저)
 - **Claude Code xhigh 기본값** — 단순 작업도 xhigh 돌면 burn rate 2.4~2.6x 보고
 - **API 브레이킹**: extended thinking budgets 제거, temperature 등 파라미터 제거, thinking content 기본 숨김
@@ -116,16 +181,36 @@
 - **vision 해상도 3.75MP** (4.6의 1.15MP 대비 3.3x)
 - **task budgets 베타** — 장시간 작업 토큰 상한 설정 가능
 
-**벤치마크 참고 (04-18):**
-- SWE-bench Verified: Opus 4.7 64.3%, GPT-5.4 ~62%
-- ARC-AGI-2: Opus 4.7 77.1% (Gemini 3 Pro 상회)
-- Terminal-Bench 2.0: GPT-5.4 75.1, Composer 2 61.7, Opus 4.6 58.0 (Opus 4.7 수치 확인 필요)
+**Cursor Composer 2 (2026-04-02) 참고:**
+- Anysphere 자체 모델. **$0.50/$2.50 per MTok**, 200+ tok/s
+- CursorBench 61.3 (Composer 1.5 44.2 대비 +39%)
+- **Cursor 3 Auto mode 기본값**
+- SWE-Bench Verified에선 Opus 4.7 87.6%가 여전히 상회 (AWS 발표, 확인필요)
 
-**핵심 결론:**
-- 비주얼/애니메이션 → Gemini (레퍼런스 받아 빠르게 구현하는 "실행기")
-- 속도/자율 실행 → Codex (GPT-5.4) (1000+ tok/s, 7시간+ 자율)
-- 로직/품질/리팩터/대규모 코드베이스 → **Claude Opus 4.7** (self-verification, 환각 최소)
-- 비용 민감 + 로직 중심 → Opus 4.6 (4.7로 자동 업그레이드 전 중간 단계)
+**Windsurf SWE-1.5 참고 (Cognition AI, Cerebras):**
+- **950 tok/s** — Haiku 4.5의 6배, Sonnet 4.5의 13배
+- Cascade 하네스 기반, 40+ IDE 지원 (JetBrains 포함)
+- Wave 13 (04-18 근처): 무료 SWE-1.5 + 병렬 에이전트
+
+**벤치마크 참고 (04-24):**
+| 벤치 | GPT-5.5 | Opus 4.7 | Gemini 3.1 Pro | 비고 |
+|---|---|---|---|---|
+| SWE-Bench Pro | 58.6% | **64.3%** | — | Opus 4.7 우세 |
+| SWE-Bench Verified | ? | **87.6%** (AWS 발표) | — | 커뮤니티 64.3%와 불일치 — **확인필요** |
+| BrowseComp | 84.4% | — | **85.9%** | Gemini 우세 |
+| AA-Omniscience 환각률 | **86%** | **36%** | 50% | GPT-5.5 치명적 약점 |
+| Expert-SWE (20h) | **73.1%** | — | — | OpenAI 내부 신규 벤치 |
+| OSWorld-Verified | **78.7%** | — | — | OpenAI 메인라인 첫 Anthropic 우세 |
+| ARC-AGI-2 | — | 77.1% | 70.x | Opus 4.7 우세 |
+
+**핵심 결론 (2026-04-24 업데이트):**
+- **비주얼/애니메이션** → Gemini 3.1 Pro (레퍼런스 받아 빠르게 구현하는 "실행기")
+- **에이전트 자율 실행** → GPT-5.5 Codex (멀티스텝 태스크, 1M 컨텍스트) **단, 환각률 주의**
+- **로직/품질/리팩터/대규모 코드베이스** → **Claude Opus 4.7** (self-verification, 환각 최소)
+- **비용 민감 + 자주 호출** → Sonnet 4.6 + Opus 4.7 advisor 조합 (Advisor Tool, 11.9% 저렴 + 품질 ↑)
+- **IDE 통합 속도** → Cursor Composer 2 ($0.50/M)
+- **최고 inference 속도** → Windsurf SWE-1.5 (950 tok/s on Cerebras)
+- **금융/의료/정확도 중시** → **Opus 4.7 우선**. GPT-5.5는 정확도 확인 루프 필수
 
 ---
 
@@ -144,6 +229,31 @@
 - Enterprise usage-based: 1회성 크레딧 (~20 프롬프트) 제공, 이후 organizational spend로 카운트
 - Figma 주가 7% 하락 (출시 직후) — 시장 반응 지표
 
+### 2-1a. Claude Advisor Tool (2026-04-09 공식 베타, 신규 섹션) ⭐
+
+**공식 블로그**: claude.com/blog/the-advisor-strategy
+**API 문서**: platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool
+
+**핵심:**
+- 한 API 요청 안에서 빠른 executor (Sonnet/Haiku) + 전략적 advisor (Opus) 조합
+- 베타 헤더: `anthropic-beta: advisor-tool-2026-03-01`
+- 도구 타입: `advisor_20260301`
+- Executor가 판단 어려운 지점에서 Advisor를 호출 — 사용자는 한 번의 request
+
+**공식 벤치마크 (Anthropic 자체 측정):**
+- Sonnet 4.6 + Opus 4.7 advisor: SWE-bench Multilingual 74.8% (solo 72.1% 대비 +2.7pp), 비용 **11.9% 저렴**
+- Haiku 4.5 + Opus 4.7 advisor: BrowseComp 41.2% (solo 19.7% 대비 2배 이상), Sonnet solo 대비 **85% 저렴**
+
+**제약 (확인):**
+- Anthropic direct API만 지원
+- Bedrock/Vertex/OpenRouter **아직 미지원** (확인필요 — 추후 확장 예정)
+- **LiteLLM 프록시 broken** (GitHub BerriAI/litellm#25516)
+
+**Claude Code `/advisor` 토글 (확인필요):**
+- 한 커뮤니티 소스(nextfuture.io.vn)가 Claude Code v2.4.0+에서 `/advisor` 토글 제공 주장
+- Anthropic 공식 changelog에서 `Advisor Tool (experimental)` 언급만 확인 (슬래시 명령 여부 불명확)
+- **확인필요 항목** — 공식 문서 재확인 후 업데이트
+
 ### 2-2. Figma MCP (2026-03-24 업데이트 — read/write beta)
 
 - `use_figma` 도구로 에이전트가 캔버스에 직접 쓰기 가능 (beta, 무료 → 이후 usage-based 유료)
@@ -153,6 +263,77 @@
 - write to canvas: Full/Dev 시트 유료 플랜에서만 (Dev 시트는 drafts 외 읽기 전용)
 - 주의: SVG 노드 → 웹 코드 변환 시 85-90% 스타일링 부정확성 보고 (SFAI Labs)
 - 주의: 복잡한 component/variant/state 자동 생성 결과는 상태별 수동 검수 필수
+
+### 2-2a. Cursor 3 + Composer 2 (2026-04-02 대대적 업데이트) ⭐신규
+
+- **출시일**: 2026-04-02
+- **Composer 2**: Anysphere 자체 모델, Cursor 3 기본값
+  - $0.50 / $2.50 per MTok
+  - **200+ tok/s** (150ms TTFT in IDE)
+  - CursorBench 61.3 (Composer 1.5 44.2 대비 +39%)
+  - Custom MLA attention kernel (1.7x faster) + speculative decoding with 300M draft model
+- **Agents Window**: 전체화면 tiled 워크스페이스, 여러 에이전트 동시 운영 (다른 레포/브랜치/환경)
+- **Cloud-to-local handoff**: 에이전트 세션을 클라우드에서 로컬로 이동. 노트북 닫아도 계속
+- **Self-hosted cloud agents**: 엔터프라이즈용 격리된 원격 환경
+- **Design Mode**: 비주얼 UI 이터레이션
+- **BugBot** (04-08 업데이트): PR 피드백 학습, **해결률 80% 근접**, MCP 서버 연결 (Team/Enterprise)
+- **Cursor 3.1** (04-13): Tiled Layout + Voice Input
+- **Canvases** (04-15), **CLI Debug Mode + /btw Support** (04-14)
+- 여러 모델 선택 가능 (Claude Opus 4.7, GPT-5.4 등)
+- Agent Client Protocol로 JetBrains 플러그인 지원 (IntelliJ, PyCharm, WebStorm)
+
+### 2-2b. Windsurf Wave 13 + SWE-1.5 (Cognition AI) ⭐신규
+
+- **소유**: Cognition AI (ex-Devin 팀, 2025-12 인수)
+- **SWE-1.5**: 자체 frontier 모델, Cerebras 웨이퍼 스케일 하드웨어
+  - **950 tok/s** — Haiku 4.5의 6배, Sonnet 4.5의 13배
+  - RL end-to-end 학습 (Cascade 하네스)
+- **Cascade 하네스**: Devin DNA 기반. Memories 기능 (세션 간 사용자 선호 기억)
+- **Cascade Hooks**: 워크플로우 자동화
+- **40+ IDE 지원** (JetBrains 포함) — Cursor(VS Code만)와 차별화
+- **Wave 13** (04-중): 무료 SWE-1.5 + 병렬 에이전트
+- **가격**: Pro **$20/mo** (03-19 $15→$20 인상, Cursor 매칭)
+- **⚠️ 보안**: MCP STDIO 결함 (CVE-2026-30615) — Windsurf가 **유일한 진짜 zero-click zero-click 취약** 플랫폼. 패치 버전 확인 필수
+
+### 2-2c. Spec-Driven Development 플러그인 생태계 (신규 섹션) ⭐
+
+**사람 병목 줄이기에 효과 입증된 프레임워크들.**
+
+**`claude-code-spec-workflow` (Pimzino, 확인):**
+- Requirements → Design → Tasks → Implementation 4단계 자동화
+- `/spec-create <name>`, `/spec-execute <name>` 슬래시 명령
+- **Hierarchical context management** → 60-80% 토큰 감소 (개별 파일 로드 대비)
+- Bug 워크플로우: Report → Analyze → Fix → Verify
+- `npx -p @pimzino/claude-code-spec-workflow claude-spec-dashboard`로 웹 대시보드
+- GitHub: github.com/Pimzino/claude-code-spec-workflow
+
+**GSD (Get Shit Done), 48.4K stars (Augment 블로그 기준 04-18):**
+- 12개 runtime 지원 (Claude Code, OpenCode, Gemini CLI, Codex 등)
+- **v1.34.0: 4 canonical gate types** — Pre-flight / Revision / Escalation / Abort
+- plan-checker + verifier 서브에이전트 자동 실행
+- **Wave-based parallel execution** — 독립 plan들을 같은 wave에서 병렬 실행
+- Atomic commit per task, requirements traceability
+- GitHub: npx 설치 지원
+
+**Superpowers (121K stars, 04-18 기준, 확인):**
+- Jesse의 TDD + brainstorm + planning 방법론
+- 2025-01 Anthropic 공식 플러그인 마켓플레이스 편입
+- 피크 성장률 2,000 stars/day 보고
+
+**Hermes Agent v0.8.0 (Nous Research, 2026-04-08):**
+- 38,700+ stars
+- 자기 개선 메모리 루프 — OpenClaw 대비 토큰 절반, 장기 fatigue 완화
+- Telegram 연동, 클라우드 VM 상주, 서버 상주 에이전트 지향
+
+**Paperclip (43,000+ stars):**
+- 멀티 에이전트 company OS
+- 20~30 Claude Code 세션 동시 관리 / 조직 차트 구조
+- immutable audit log, agent 월간 예산 + 자동 pause
+
+**Compound Engineering (CE, 11K stars, Every Inc.):**
+- `/ce:compound` 명령
+- 실패 로그 중심 — 같은 실수 반복 방지
+- Explorer 4 + Critic 1 패턴 (Ultraplan과 유사)
 
 ### 2-3. Google Antigravity (2026-04-18 기준)
 

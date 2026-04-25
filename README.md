@@ -1,106 +1,86 @@
 # noma-dev-rules
 
-**AI agent project operation rules as a plugin.** Tool landscape, security, frontend pipeline, browser automation, subagent contracts, headless lane, maintainability review — all auto-triggered.
+**v2.3.0** — "Reducing the human bottleneck + planning completeness" theme.
 
-[한국어](README.ko.md)
+A Claude Code plugin providing operating rules for AI-agent-driven development. Built for solo developers and small teams who want to **stop being the bottleneck** and let agents ship features as planned.
 
-**v2.2.0 — 2026-04-18 update:** Opus 4.7 (04-16), Claude Design (04-17), Codex 04-17 major update, new maintainability skill, quantitative thresholds, learning loop.
+## What's new in v2.3.0 (2026-04-24)
 
-## What this is
+**17 updates across 7 days (2026-04-18 ~ 2026-04-24):**
 
-A skills-based plugin that gives your coding agent **operational awareness** — not just how to write code, but *which tools to use, what's broken this week, how to stay secure, when to fall back, and whether the existing code is healthy*.
+### Critical 5
+- **GPT-5.5 released** (2026-04-23) — Codex default. Model comparison updated. **Hallucination rate 86% warning** (Opus 4.7 is 36%).
+- **Claude Advisor Tool** (2026-04-09, official beta) — Executor + Advisor pattern in one API call. Sonnet+Opus advisor: 11.9% cheaper than Sonnet solo, +2.7pp on SWE-bench Multilingual.
+- **🚨 MCP STDIO design flaw** — 10 CVEs, 200K+ vulnerable instances. Anthropic declined to patch. **Each team must defend at application level** — 6 required mitigations.
+- **Claude Code storm v2.1.92~v2.1.118** — `/ultraplan` (cloud 3+1 pattern), `/recap`, `/usage`, Prompt caching 1H TTL, vim visual mode.
+- **AGENTS.md standard rewrite** — Linux Foundation AAIF. AGENTS.md = single source of truth. Princeton: -28.6% runtime, -16.6% tokens.
 
-Works alongside [Superpowers](https://github.com/obra/superpowers) (coding discipline) and [gstack](https://github.com/garrytan/gstack) (sprint roles). No conflicts — different layers.
+### High 5
+- Cursor 3 + Composer 2 + Windsurf Wave 13 SWE-1.5 (model comparison table)
+- Codex GPT-5.5 integration
+- **Spec-Driven Development** section added (Requirements → Design → Tasks → Implementation, Hierarchical Context)
+- **Orchestrator + Checker** pattern (Claude Code Task System, self-verification)
+- Routines detail (3 triggers, 13+ GitHub events, daily limits)
 
-```
-[Ruflo/claude-mem]   → Execution engine / memory (optional)
-[Superpowers]       → Coding discipline (brainstorm, TDD, plan, review)
-[noma-dev-rules]    → Operation rules (tools, security, design, maintainability, known issues)
-```
+### Medium 7
+- Opus 4.7 AWS Bedrock availability (2026-04-20)
+- Ecosystem growth: Superpowers 121K, Hermes v0.8.0, Paperclip 43K, CE 11K
+- Computer Use expanded to 3 platforms (+ Cowork)
+- **Subagent advanced fields**: `skills:` preload, `memory:` (user/project/local/none), `color:`, permissionMode inheritance
+- Windsurf Cascade harness details
+- OpenAI acquires Astral (uv+ruff, 2026-03-19)
+- Korean/Japanese (CJK) fixes (v2.1.84+)
 
-## Quick Start
+## Core principles
 
-### Claude Code
+- **Explore → Plan → Execute** protocol. Use `/ultraplan` for multi-approach exploration
+- **TDD Iron Law**: No production code without a failing test
+- **Done = tests pass + lint clean + typecheck clean**
+- **"Don't stop at blocked"** — always offer workaround, reduced scope, next verification step
+- **Three confidence tags**: confirmed / probable / requires verification
+- **Honorific Korean** as primary communication language (can be overridden)
+
+## 9 skills, 3 agents, 2 hooks
+
+### Skills
+- `tool-landscape` — model comparison, pricing, known issues
+- `security-ops` — external content handling, MCP STDIO mitigations
+- `frontend-pipeline` — design pipeline (Claude Design, Figma MCP, etc.)
+- `browser-automation` — 4-tier browser automation (Playwright → agent-browser → Scrapling → Computer Use)
+- `subagent-ops` — Advisor pattern, Orchestrator+Checker, agent memory/skills/color
+- `headless-lane` — thin lane (--bare -p, codex exec)
+- `project-interview` — structured interview for ambiguous requests
+- `upstream-tracker` — track Superpowers, GSD, Hermes, Paperclip, CE, etc.
+- `maintainability` — `/ultrareview` + quantitative thresholds
+
+### Agents
+- `browser-verifier` — screenshot + responsive check
+- `security-reviewer` — MCP/permissions/secrets
+- `design-auditor` — generic AI aesthetic detector
+
+### Hooks
+- `auth-preflight.sh` — stale auth detection
+- `browser-cleanup.sh` — Chrome cleanup
+
+## Compatible with
+
+- [Superpowers](https://github.com/obra/superpowers) — TDD, planning
+- [gstack](https://github.com/garrytan/gstack) — YC-style multi-role governance
+- [claude-code-spec-workflow](https://github.com/Pimzino/claude-code-spec-workflow) — SDD (Pimzino)
+
+## Documentation
+
+Full reference:
+- `docs/project-operation-rules-v2.3.md` — invariant principles (~2660 lines)
+- `docs/tool-landscape-snapshot-2026-04-24.md` — weekly-refreshed tool status
+- `docs/antigravity-frontend-policy.md` — Antigravity-specific policy
+
+## Install
 
 ```bash
 /plugin marketplace add noma-openproject/noma-dev-rules
 /plugin install noma-dev-rules
 ```
-
-### Codex
-
-```
-Fetch and follow instructions from https://raw.githubusercontent.com/noma-openproject/noma-dev-rules/main/.codex/INSTALL.md
-```
-
-### Manual
-
-```bash
-git clone https://github.com/noma-openproject/noma-dev-rules.git ~/.claude/plugins/noma-dev-rules
-```
-
-## Skills (auto-triggered)
-
-| Skill | Triggers when... |
-|---|---|
-| **tool-landscape** | Selecting tools, comparing models, checking known issues, quota problems |
-| **security-ops** | Handling external content, installing plugins, auth issues, permissions |
-| **frontend-pipeline** | Building UI, implementing designs, CSS/React work (Stitch/Figma/v0/Claude Design/paper.design) |
-| **browser-automation** | Running E2E tests, visual verification, scraping sites, Computer Use |
-| **subagent-ops** | Spawning subagents, delegating tasks, parallel execution |
-| **headless-lane** | Setting up CI, scheduled tasks, non-interactive automation |
-| **project-interview** | Receiving vague or ambiguous instructions |
-| **upstream-tracker** | Tracking upstream frameworks (Superpowers/gstack/Hermes) |
-| **maintainability** ⭐ v2.2.0 | Before major merges, phase transitions, monthly audits — `/ultrareview` + quantitative thresholds + learning loop |
-
-## Agents
-
-| Agent | Role | Permission |
-|---|---|---|
-| **browser-verifier** | Screenshot + console + network verification | Read-only |
-| **security-reviewer** | External threats, hallucinated APIs, credential exposure | Read-only |
-| **design-auditor** | Generic AI aesthetics check, design system compliance | Read-only |
-
-## Hooks
-
-| Hook | Event | Purpose |
-|---|---|---|
-| **auth-preflight** | SessionStart | Check auth freshness before long sessions |
-| **browser-cleanup** | Stop | Kill orphaned Chrome/Chromium processes |
-
-## What's in the weekly snapshot
-
-The `tool-landscape` skill includes a weekly-updated snapshot with:
-- **This week's changes** (7-10 day window, strict)
-- **Known regressions & workarounds** (with severity)
-- **Model comparison** (Gemini / GPT-5.4 / Claude Opus 4.6/4.7)
-- **Pricing** (Antigravity / Cursor / Claude Code / Codex / Claude Design)
-- **Korean/Windows caveats**
-
-## v2.2.0 highlights
-
-- **Opus 4.7 adaptation** — xhigh effort level, task budgets, new tokenizer 1.0–1.35x, burn rate 2.4–2.6x warning
-- **`/ultrareview` integration** — Claude Code new slash command
-- **Quantitative thresholds** — file ≤1200 lines, CC ≤15/25, lint 0, coverage ≥70%
-- **Learning loop** — troubleshootings → feedback → CLAUDE.md auto-injection (4 stages)
-- **Working directory structure** — orders/plans/working/report/feedback/troubleshootings
-- **Claude Design** (04-17) — added as Stage 2c in frontend pipeline
-- **Codex macOS Computer Use** — security rules extended to 2 platforms
-- **Routines** — monthly `/ultrareview` automation
-
-## Full reference docs
-
-The `docs/` folder contains complete operation rules (~2,000 lines), tool snapshot (~400 lines), and Antigravity frontend policy (~330 lines). Skills auto-reference these when needed.
-
-## Compatibility
-
-| Platform | Status |
-|---|---|
-| Claude Code | ✅ Plugin marketplace |
-| Codex | ✅ Manual install |
-| Cursor | ✅ Plugin marketplace |
-| Claude.ai | ⚠️ Use docs/ as project knowledge |
-| Gemini CLI | 🔜 Planned |
 
 ## License
 
