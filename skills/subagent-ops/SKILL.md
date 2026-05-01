@@ -1,25 +1,29 @@
 ---
 name: subagent-ops
-description: Subagent operation contracts for Claude Code and Codex. Use when spawning subagents, delegating tasks to agents, using parallel execution, configuring TOML custom agents, setting up advisor pattern, configuring agent memory or skills preload, implementing orchestrator+checker pattern, or when the user mentions subagent, multi-agent, spawn, delegate, Scout, Mutator, Verifier, Explorer, Worker, advisor, agent memory, agent skills, spawn_agents_on_csv, or agent_teams.
+description: Subagent and async agent operation contracts for Claude Code, Codex, Cursor, and Copilot. Use when spawning subagents, delegating tasks, using parallel execution, configuring TOML custom agents, setting up advisor pattern, configuring agent memory or skills preload, implementing orchestrator+checker, recording agent run ledgers, routing verifier agents, or when the user mentions subagent, multi-agent, spawn, delegate, Scout, Mutator, Verifier, Explorer, Worker, advisor, agent memory, agent skills, Cursor Cloud Agents API, Copilot Debugger agent, MultiAgentV2, spawn_agents_on_csv, or agent_teams.
 ---
 
-# Subagent Operations — 서브에이전트 운영 계약 (v2.3.0)
+# Subagent Operations — 서브에이전트 운영 계약 (v2.4.0)
 
-## 3단계 전략
+## 4단계 전략
 
 **사람 병목 최소화를 위한 Level 구조:**
 
 | Level | 전략 | 언제 사용 |
 |---|---|---|
-| 1 | 단순 모델 분리 (Main: Opus/GPT-5.5, Sub: Sonnet/Haiku/GPT-5.4 mini) | 대부분의 일상 작업 |
-| 2 | **Advisor Pattern** (한 API 요청 안 executor + advisor) | 반복 작업 + 가끔 판단 포인트 |
-| 3 | **Orchestrator + Checker** (두 세션 공유 task list) | Merge 게이트, Phase 전환 |
+| 1 | 단순 역할 분리 (Scout/Mutator/Verifier) | 대부분의 일상 작업 |
+| 2 | **Agent Run Ledger** (agent/run/status/artifacts/verifier) | 장시간 작업, 비동기 cloud agent |
+| 3 | **Advisor Pattern** (한 API 요청 안 executor + advisor) | 반복 작업 + 가끔 판단 포인트 |
+| 4 | **Orchestrator + Checker** (두 세션 공유 task list) | Merge 게이트, Phase 전환 |
 
 ## Spawn 규칙
 
 - **explicit spawn only** — 자동 fan-out 금지
 - max_depth: 기본 1 (서브에이전트가 서브에이전트를 만들지 않음)
 - max_threads: 프로젝트별 상한 명시 (권장: 5 이하)
+- wait-time 또는 timeout 명시. 무한 대기 금지
+- spawn 시 owned files, permission profile, expected artifacts, verifier를 같이 지정
+- critical path 바로 다음 작업은 직접 처리하고, sidecar 작업만 병렬 위임
 
 ## 3가지 역할
 
@@ -31,6 +35,41 @@ description: Subagent operation contracts for Claude Code and Codex. Use when sp
 
 - Mutator는 반드시 worktree 분리
 - Verifier는 코드 수정 권한 없음
+
+## Agent Run Ledger (v2.4.0 신규)
+
+모든 agent/subagent/cloud-agent 실행은 아래 형식으로 보고한다.
+
+```yaml
+agent: browser-verifier
+run: session-or-run-id
+status: verified
+scope: "read-only, http://localhost:3000"
+permission_profile: "read-only + browser"
+branch_or_pr: null
+artifacts:
+  - screenshots/390.png
+  - screenshots/1440.png
+verifier_result: "console 0, failed requests 0, layout pass"
+cost_limit_note: "1 verifier, 3 viewports, no parallel fan-out"
+next_action: "ship"
+```
+
+규칙:
+- cloud agent는 PR URL 또는 run id를 반드시 남긴다.
+- 로컬 subagent는 changed files 또는 inspected files를 남긴다.
+- `status=completed`와 `status=verified`를 구분한다.
+- verifier 결과가 없으면 "구현 완료"까지만 말한다.
+
+## Runtime별 운영 계약 (v2.4.0 신규)
+
+| Runtime | 계약 |
+|---|---|
+| **Codex MultiAgentV2** | thread cap, wait-time, root/subagent hint, depth를 plan에 명시. `spawn` 결과에 실제 모델/권한/changed files를 기록 |
+| **Cursor SDK/API** | durable `agent`와 per-prompt `run` 분리. streaming/reconnect terminal state를 report에 기록. archive/delete lifecycle은 retention policy에 맞춤 |
+| **Copilot Cloud Agent** | issue/PR 중심 비동기 run. PR URL, branch, status, requested review를 ledger에 기록 |
+| **Copilot Debugger Agent** | bug workflow 기본형: reproduce -> instrument -> diagnose -> targeted fix. 재현 증거 없으면 완료 아님 |
+| **Claude Code** | subagent 생성 시 model routing 명시. PR URL resume 가능성, OAuth/session 상태를 run report에 남김 |
 
 ## Advisor Pattern (v2.3.0 신규, 2026-04-09 공식 베타)
 
@@ -70,7 +109,7 @@ claude --task-list <shared-id>
 ```
 
 - **세션 A (Orchestrator)**: 메인 구현. Task 생성/갱신/완료 마크
-- **세션 B (Checker)**: 완료된 Task를 별도 세션에서 읽어 품질 검증. 누락 발견 시 follow-up Task 추가
+- **세션 B (Checker)**: 완료된 Task를 별도 세션에서 읽어 품질 검증. 누락 발견 시 follow-up Task 추가. Checker는 run ledger의 verifier_result를 갱신
 
 **해결하는 3가지 문제:**
 1. Agent Amnesia (세션 끊김)
@@ -173,11 +212,13 @@ Claude Code v2.1.92~101 (2026-04-06~10):
 - 커스텀 에이전트: `.codex/agents/*.toml`로 정의
 - `spawn_agents_on_csv`: CSV 행당 Worker 1개, 결과 CSV export
 - 서브에이전트 v2: 경로 주소 `/root/agent_a`
+- v2.4 추가: MultiAgentV2 thread cap, wait-time, depth를 task plan에 기록
+- persisted `/goal`이 있으면 subagent는 goal id를 result schema에 포함
 
 ## Result Schema
 
 모든 서브에이전트는 반환 형식 사전 정의:
-- 최소: `status`, `summary`, `changed_files`, `issues_found`, `next_action`
+- 최소: `agent`, `run`, `status`, `summary`, `changed_files`, `issues_found`, `artifacts`, `verifier_result`, `cost_limit_note`, `next_action`
 - 완료 조건을 spawn 시 명시
 
 ## Thread 소유권
@@ -185,6 +226,7 @@ Claude Code v2.1.92~101 (2026-04-06~10):
 - 같은 thread 동시 resume 금지 — fork
 - 완료된 에이전트는 명시적 close
 - stale agent: 1회 재시도, 이후 수동 개입
+- cloud agent는 archive/delete lifecycle을 명시. 보존할 run artifact와 삭제할 ephemeral state를 구분
 
 ## 비용
 
@@ -192,3 +234,4 @@ Claude Code v2.1.92~101 (2026-04-06~10):
 - **Advisor Pattern 우선 고려** — 단순 분리보다 더 효과적
 - model override 무시 이슈 → spawn 후 실제 모델 확인
 - Agent Teams는 3~4x 토큰 — 명시적 정당화 없으면 피한다
+- Copilot/Cursor/Codex parallel runs는 usage limit과 token multiplier를 빠르게 소모한다. 시작 전 thread cap, wait-time, fallback model을 선언한다

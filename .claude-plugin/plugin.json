@@ -1,7 +1,7 @@
 {
   "name": "noma-dev-rules",
-  "version": "0.3.0",
-  "description": "AI 에이전트 프로젝트 운영 규칙 v2.3: Advisor 패턴(04-09), Spec-Driven Development, Orchestrator+Checker 자기검증, MCP STDIO 보안 결함 완화책, AGENTS.md 표준(Linux Foundation AAIF), Routines 세부, Ultraplan 3+1, Opus 4.7/GPT-5.5 대응. 사람 병목 줄이기 + 기획 완성도. Superpowers/gstack/Pimzino SDD와 함께 사용 가능.",
+  "version": "2.4.0",
+  "description": "AI 에이전트 프로젝트 운영 규칙 v2.4: 지속 goal, agent/run 상태 관찰, 명시적 권한 프로파일, headless workspace trust, verifier 에이전트, 비용/쿼터 가드를 1급 운영 원칙으로 승격. Codex 0.128.0, Claude Code 2.1.126, Cursor SDK/API, Copilot agent workflows, Gemini CLI trust fixes 반영. 사람 병목 줄이기 + 기획 완성도.",
   "author": "noma-openproject",
   "license": "MIT",
   "homepage": "https://github.com/noma-openproject/noma-dev-rules",

@@ -1,12 +1,14 @@
 # Tracked Repositories — 추적 현황
 
-> 마지막 확인: 2026-04-24
+> 마지막 확인: 2026-05-01
 
 ## Superpowers (obra/superpowers)
 
 - **스타**: **121K** (04-18 시점, 피크 성장률 2,000/day)
 - **2026-01 Anthropic 공식 플러그인 마켓플레이스 편입**
 - **이식한 원칙**: TDD Iron Law, git worktree 격리
+- **2026-04-28 관찰**: new-harness PR에 session transcript 요구
+- **v2.4 이식**: agent run ledger에 transcript/artifact 필드 필수화
 - **다음 확인 시 주의**: brainstorm/subagent-driven-development 스킬 변경, 새 스킬 추가
 
 ## GSD (TÂCHES/gsd) ⭐ v2.3.0 업데이트
@@ -24,13 +26,30 @@
 - **스타**: 31.3K
 - **성격**: 멀티에이전트 스웜 오케스트레이션. Claude Code + Codex 듀얼 모드. MCP 기반 87+ 도구
 - **특징**: hive-mind (queen/worker), HNSW 벡터 메모리, 9개 RL 알고리즘, SWE-bench 84.8%
+- **2026-04-30 관찰**: federation/IoT plugin alpha 릴리스가 빠르게 반복됨
+- **v2.4 이식**: federation 자체는 추적만. core 규칙에는 audit log, auth token scope, fail-closed만 반영
 - **다음 확인 시 주의**: 스웜 토폴로지 변경, MCP 도구 추가, 메모리 시스템 변경
 
 ## gstack (garrytan/gstack)
 
 - **스타**: **70-71K** (2026-04 기준)
 - **이식한 원칙**: CEO 리프레이밍, cross-model review, 파괴적 명령 안전장치, 디자인 변형 비교, 회고+메트릭, headed Chrome+쿠키, "Boil the Lake" 원칙
+- **2026-04-30 관찰**: plan-ceo-review Step 0 smoke 강화
+- **v2.4 이식**: 큰 작업 전 Step 0 intent/smoke gate와 verifier-first report 강화
 - **다음 확인 시 주의**: /browse 개선, 새 스킬 추가, Conductor 통합 변경
+
+## Andrej Karpathy Skills (forrestchang/andrej-karpathy-skills) ⭐ v2.4.0 추적 확정
+
+- **성격**: Karpathy의 LLM coding pitfall 관찰을 행동 규칙으로 정리
+- **로컬 포팅**: `~/plugins/andrej-karpathy-skills`, 단일 `karpathy-guidelines` skill 노출
+- **plugin-updates 상태**: tracked plugin으로 등록되어 upstream HEAD 비교 대상
+- **이식 검토**: Noma의 `project-interview`, `subagent-ops`, `maintainability`와 충돌하지 않는 행동 규칙만 참조
+
+## OpenCode (sst/opencode) ⭐ v2.4.0 추적 보강
+
+- **성격**: 빠른 릴리스 cadence를 가진 오픈소스 agent runtime
+- **2026-05-01 관찰**: provider/tool bootstrap, image/empty text tool 결과 처리 등 patch 릴리스 연속
+- **v2.4 이식**: local CLI version drift와 tool result edge case를 snapshot에 기록
 
 ## Hermes Agent (Nous Research) ⭐ v2.3.0 신규 추적
 
@@ -62,11 +81,3 @@
 - **핵심 명령**: `/spec-create`, `/spec-execute`
 - **특징**: Hierarchical context management (60-80% 토큰 감소), Bug 4단계 워크플로우, 웹 대시보드
 - **이식 검토**: 우리 SDD 섹션(9-6)에 원칙만 이식. 플러그인 자체는 보완재 (compatible_with에 추가)
-
-## OpenCode (Anomaly Innovations) ⭐ v2.3.0 신규 추적
-
-- **스타**: 112K+
-- **성격**: MIT 오픈소스, 75+ LLM 지원
-- **특징**: SQLite 세션 저장, multi-agent orchestration, Plan Agent (read-only)
-- **Go plan**: $10/mo (최저 유료 옵션)
-- **이식 검토**: 크로스 모델 호환성 원칙만

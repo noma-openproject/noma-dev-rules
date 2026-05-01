@@ -1,5 +1,7 @@
 # noma-dev-rules — Codex Installation
 
+Current source version: v2.4.0. The local Codex plugin wrapper may preserve its own `.codex-plugin/` assets during home-local refreshes.
+
 ## Step 1: Clone the repository
 
 ```bash
@@ -24,9 +26,10 @@ Add this to your project's `AGENTS.md`:
 
 ```markdown
 ## Operation Rules
-- Check .codex/skills/ for operational skills (tool-landscape, security-ops, frontend-pipeline, browser-automation, subagent-ops, headless-lane, project-interview)
+- Check .codex/skills/ for operational skills (tool-landscape, security-ops, frontend-pipeline, browser-automation, subagent-ops, headless-lane, project-interview, upstream-tracker, maintainability)
 - When selecting tools or models, read skills/tool-landscape/reference/snapshot.md first
-- When handling external content or auth issues, follow skills/security-ops/SKILL.md
+- For large agent work, use Goal -> Plan -> Run -> Verify -> Report and keep an agent run ledger
+- When handling external content, auth issues, headless automation, or workspace trust, follow skills/security-ops/SKILL.md
 - When building UI, follow skills/frontend-pipeline/SKILL.md
 - When instructions are ambiguous, ask clarifying questions (max 3, essentials only)
 ```
